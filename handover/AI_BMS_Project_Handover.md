@@ -1,8 +1,12 @@
 # AI-Driven BMS — Project Handover & Technical Recap
 
-**Version:** V12 (Physics Simulator) — flow export `20260112_flows.json`
-**Author:** Olivier — **Handover date:** June 2026
+**Version:** V12.1 (Physics Simulator + BMS API) — flow source of truth: `flows.json` in the git repo
+**Author:** Olivier — **Handover date:** June 2026 — **Last revised:** 2026-06-12 (post-audit: P0/P1 fixes + Track 1 BMS API)
 **Purpose of this document:** enable a new AI instance (Claude Code) and other engineers to take over the project without loss of context.
+
+> **Companion documents:** `audit/2026-06-12_audit.md` (full audit; supersedes §8 history),
+> `docs/BMS_CONFIG_SCHEMA.md` (canonical AI-config schema + HTTP API reference),
+> `CLAUDE.md` (session workflow for Claude Code).
 
 ---
 
@@ -46,15 +50,25 @@ The flow export does **not** carry all dependencies. Two categories:
 cd ~/.node-red
 npm install json-rules-engine node-cache suncalc
 ```
-Then in `settings.js`:
+Then in `settings.js` (key names must match EXACTLY — a doc/settings mismatch on the
+suncalc key once left sun position dead for months):
 ```js
 functionGlobalContext: {
     jsonRulesEngine: require('json-rules-engine'),
     nodeCacheModule: require('node-cache'),
-    SunCalc: require('suncalc')
+    suncalcModule: require('suncalc')
 }
 ```
-The flow accesses these via `global.get('jsonRulesEngine')`, `global.get('nodeCacheModule')`, `global.get('SunCalc')`. **If settings.js is not configured, the Logic Kernel and State Manager crash on first tick.**
+The flow accesses these via `global.get('jsonRulesEngine')`, `global.get('nodeCacheModule')`, `global.get('suncalcModule')`. **If settings.js is not configured, the Logic Kernel and State Manager crash on first tick.**
+
+**C. Context storage (REQUIRED since V12.1)** — persistence of AI config/tag edits/location:
+```js
+contextStorage: {
+    default: { module: "memory" },   // BMS object + NodeCache are not serializable
+    file: { module: "localfilesystem" }
+}
+```
+The repo's `settings.js` already contains both B and C.
 
 > **Recommended upgrade:** migrate these three to per-node module declarations (the "Setup" tab of function nodes / `functionExternalModules: true`). This makes the flow import fully self-contained and removes the settings.js trap. See §9.
 
@@ -74,12 +88,12 @@ node-red
 
 ---
 
-## 3. Node-RED Flow Architecture (V12)
+## 3. Node-RED Flow Architecture (V12.1)
 
-One tab: **"AI BMS V12 (Physics Simulator)"**, organized into 9 visual groups. Names below match the Node-RED UI exactly.
+One tab: **"AI BMS V12 (Physics Simulator)"**, 83 nodes organized into 10 visual groups. Names below match the Node-RED UI exactly.
 
 ### 3.1 Bootstrap (ungrouped)
-- **Boot System** (inject, fires on deploy) → **Initialize System (V12)** (function): defines `bacnetPoints` (93 points, 11 zones, 3 floors), `bmsMetadata` (tags + zones), `virtualPoints`, the **BMS abstraction layer** (global `BMS` object), and initializes empty `ruleGroups`, `stateRegistry`, `behaviorAgents`, `dashboardConfig`.
+- **Boot System** (inject, fires on deploy) → **Initialize System (V12)** (function): defines `bacnetPoints` (86 points, 13 zones incl. External, 3 floors), `bmsMetadata` (tags + zones), `virtualPoints` (17), and the **BMS abstraction layer** (global `BMS` object, incl. `applyConfig`). On boot it restores persisted AI config / tag edits / location from the `file` context store; on redeploy it preserves current runtime values (precedence: defaults < persisted < runtime).
 
 ### 3.2 LOGIC KERNEL (the brain — 1 s loop)
 | Node | Role |
@@ -124,7 +138,19 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, organized into 9 visual groups. N
 - Data side: **Every 10 min** → **Prepare Request** → **OpenWeatherMap** → **Parse & Update** (writes `glob_outside_temp`, `glob_outside_lux`, etc.).
 
 ### 3.10 DEVICE MANAGER
-- **Refresh Devices** / **Auto on Boot** → **Build Device Data** → **Device Manager UI** → **Tag Handler**: browse all points, edit tags/zones in `bmsMetadata` at runtime.
+- **Refresh Devices** / **Auto on Boot** → **Build Device Data** → **Device Manager UI** → **Tag Handler**: browse all points, edit tags/zones in `bmsMetadata` at runtime (edits persist to the `file` store).
+
+### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
+Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
+(open on localhost like the dashboard; set `BMS_API_TOKEN` env var to require an
+`x-bms-token` header). Full reference: `docs/BMS_CONFIG_SCHEMA.md`.
+| Endpoint | Role |
+|---|---|
+| `GET /bms/context` | Live inventory (points, units, ranges, tags, zones), virtual points, tag counts, current config as exact JSON. Replaces the copy-pasted prompt for tooling. |
+| `POST /bms/config` | Apply a configuration via `BMS.applyConfig`; returns `{applied, counts, unknownFacts, errors}`. |
+| `GET /bms/firelog` | Loaded rules/agents + per-rule fire timestamps — the verification endpoint. |
+| `GET /bms/points` | All fact values incl. soft states (`?id=`, `?tag=` filters). |
+| `POST /bms/points` | `{id, value}` through the BMS layer (access + clamping); `{id, value, "simulate": true}` raw sensor override for scenario testing. |
 
 ---
 
@@ -132,16 +158,21 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, organized into 9 visual groups. N
 
 | Global key | Content | Written by |
 |---|---|---|
-| `bacnetPoints` | `{ id: { objectName, value, units, access: 'read_only'\|'read_write', min?, max? } }` — 93 points. **Hardware values only**, mirroring what a real BACnet stack would expose. | Init; Safety Guard; Hardware Simulator; Physics |
+| `bacnetPoints` | `{ id: { objectName, value, units, access: 'read_only'\|'read_write', min?, max? } }` — 86 points. **Hardware values only**, mirroring what a real BACnet stack would expose. | Init; Safety Guard; Hardware Simulator; Physics; `/bms/points` simulate |
 | `bmsMetadata` | `{ id: { tags: [...], zone: 'F1_Lobby' } }` — **BMS-side metadata, deliberately separated from hardware** to prepare for real BACnet integration (hardware via REST later; metadata stays local). | Init; Device Manager |
 | `virtualPoints` | Computed/system values: `physics_enabled`, `glob_time_*`, `glob_comfort_sp`, `glob_eco_sp`, `sun_*`, `loc_*`. Flags: `writable`, `source`. | Init; Sun/Time; Weather; Settings |
-| `BMS` | Abstraction API: `getValues()`, `getValue(id)`, `writeValue(id, value)` (enforces access + clamping), `setVirtualValue(id, value)`, `getMetadata(id)`. **All reads/writes go through this object** — the single seam to replace when connecting real BACnet. | Init |
+| `BMS` | Abstraction API: `getValues()`, `getValue(id)`, `writeValue(id, value)` (enforces access + clamping), `setVirtualValue(id, value)`, `getMetadata(id)`, **`applyConfig(cfg)`** (validate + apply + persist an AI configuration — single seam shared by the Import Panel, `POST /bms/config`, and future tool-calling). **All reads/writes go through this object** — the single seam to replace when connecting real BACnet. | Init |
 | `ruleGroups` | AI-generated `rule_groups` (json-rules-engine format). | Parse & Apply |
 | `stateRegistry` | AI-generated `defined_states` (id, name, type, defaultValue, ttl?, description). | Parse & Apply |
 | `behaviorAgents` | AI-generated agents (id, name, description, category, enabled, rule_group). | Parse & Apply |
 | `dashboardConfig` | AI-generated `{ widgets: [...] }`. | Parse & Apply |
 | `myStateCache` | NodeCache instance holding live soft-state values with TTL auto-expiry. | State Manager |
-| `ruleFireLog` | Per-rule fire counters/timestamps for the inspector. | Rules Engine |
+| `ruleFireLog` | Per-rule fire counters/timestamps for the inspector and `/bms/firelog`. | Rules Engine |
+
+**Persistence (V12.1):** the four AI-config keys, `bmsMetadata`, and `locationSettings`
+are mirrored to the `file` context store (`~/.node-red/context/global/global.json`,
+~30 s flush) and restored at boot. Everything else is memory-only by design
+(`BMS` holds functions; `myStateCache` is a live NodeCache instance).
 
 ### Zone/point naming convention
 `{floor}_{room}_{function}` — e.g. `f2_off1_temp_setpoint`. Floors: lobby/corridor/meeting/storage (F1), corridor + 3 offices (F2, F3). Globals: `glob_*`. Tags follow a consistent taxonomy: floor (`floor1`…), room kind, `sensor`/`actuator`, function (`temperature`, `lighting`, `hvac_temp`, `hvac_vent`, `co2`, `iaq`, `motion`, `occupancy`, `light`, `setpoint`, `booking`, `schedule`).
@@ -149,6 +180,11 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, organized into 9 visual groups. N
 ---
 
 ## 5. The AI Exchange Schema (the "language" the LLM speaks)
+
+> **Canonical, maintained version: `docs/BMS_CONFIG_SCHEMA.md`** (includes the full
+> operator list with the inclusive fact-to-fact variants, the optional `ttl` on states,
+> all widget types incl. `select`, the critical anti-refire patterns, and the HTTP API).
+> The summary below is kept for orientation only.
 
 Single JSON object; each section optional (only present sections are applied):
 
@@ -218,32 +254,50 @@ Dashboard 2.0 (`@flowfuse/node-red-dashboard`), theme "Modern Theme", base "AI B
 
 ## 8. Known Issues & Technical Debt
 
-1. **Encoding mojibake**: the flow export contains `Â°C` instead of `°C` (UTF-8 double-encoding) in many strings. Cosmetic, but pollutes the AI prompt and the unit-matching logic in `control_group` (`"unit": "Â°C"` appears in the prompt's schema examples!). Fix by re-saving units as plain `degC` or repairing the encoding once, then re-export.
-2. **settings.js coupling** (§2.3): silent crash if `functionGlobalContext` is missing. Migrate to function-node module declarations.
-3. **No persistence**: all state lives in in-memory global context; a Node-RED restart loses the AI configuration. Enable a persistent context store (`contextStorage: { default: { module: 'localfilesystem' } }` in settings.js) or persist `ruleGroups`/`stateRegistry`/`behaviorAgents`/`dashboardConfig` to disk on apply and reload at boot.
-4. **OWM credential** must be re-entered after every clean import.
-5. **No schema validation library**: Parse & Apply checks shape informally. Consider AJV with a published JSON Schema (also reusable as the contract for tool-calling, §10).
-6. **Documentation drift**: `AI_BMS_documentation.docx` describes V8 (5 groups, `inventory` array schema). V12 reality: 9 groups, separated `bacnetPoints`/`bmsMetadata`, behavior agents, physics, weather, device manager. This document supersedes it.
-7. **Versioning by filename** (`20260112_flows.json`). Move to git (Node-RED "Projects" feature or a plain repo over `~/.node-red`).
+**Full, current list with statuses: `audit/2026-06-12_audit.md`** (all P0 and P1 items
+from that audit are fixed and verified; P2 items remain open). Summary:
+
+Resolved since the original handover:
+1. ~~Encoding mojibake (`Â°C`)~~ — fixed before the audit.
+2. ~~No persistence~~ — `file` context store + `BMS.applyConfig` mirroring + boot restore (P0).
+3. ~~Versioning by filename~~ — git repo is the source of truth (`flows.json`).
+4. ~~Sun position dead, engine killed by one bad fact id, slider snap-back, parser corrupting `//` in strings, fail-open physics gate, deploy wiping runtime edits~~ — see audit P0/P1.
+
+Still open:
+1. **OWM credential** must be re-entered after every clean import (Node-RED credential store, by design).
+2. **No formal JSON-Schema validation**: `BMS.applyConfig` validates fact references and shape informally; an AJV schema (derived from `docs/BMS_CONFIG_SCHEMA.md`) would double as the Track 2 tool contract.
+3. **settings.js coupling** (§2.3): silent crash if `functionGlobalContext` is missing. Migrating to function-node module declarations (`functionExternalModules` is already enabled) would make the flow self-contained.
+4. **P2 polish** (audit): physics dead-band churn + 0.1 °C setpoint offset, humidity never simulated, `loc_timezone` decorative (demo must stay CET), GPS weather mode dead code, `tag_create` no-op, redundant VIRTUAL POINTS "Update Time" node, Vuetify `gap-N`→`ga-N`, prompt-builder gaps (loc_* section, stale fire-time display).
+5. **Dashboard 2.0 pinned at 1.30.0** — old; test §3.4 Vue patterns after any upgrade.
+6. **Documentation drift**: `AI_BMS_documentation.docx` describes V8 — historical only, superseded by this document.
 
 ---
 
-## 9. Recommended Environment Upgrades
+## 9. Environment Upgrades — status
 
-1. **Node-RED 4.x + latest Dashboard 2.0** — check current versions before upgrading; Dashboard 2.0 moves fast and 1.30.0 is several months old. Test the ui-template Vue patterns after upgrade (event-handling quirks of §3.4 may have evolved).
-2. **Self-contained flows**: declare `json-rules-engine`, `node-cache`, `suncalc` in the function nodes' Setup/modules tab instead of `functionGlobalContext`.
-3. **Persistent context** (see issue 3 above).
-4. **Git + CLAUDE.md**: keep `~/.node-red` (or an export folder) under git; add a `CLAUDE.md` at repo root pointing to this document and the bootstrap prompt so Claude Code auto-loads context.
-5. **Node-RED MCP server**: keep using an MCP server exposing the Admin API (get-flows / update-flow / inject / diagnostics…). Pin and document the exact package used (the current setup exposes 20 tools incl. `get-flows-formatted`, `update-flow`, `inject`, `visualize-flows`). Configure it in the new environment via `claude mcp add` (project scope, `.mcp.json` committed to the repo). The Node-RED **Admin HTTP API** (`http://127.0.0.1:1880/flows`, `/flow/:id`) is the fallback if the MCP server misbehaves — Claude Code can `curl` it directly.
+1. ~~Node-RED 4.x~~ — **done** (4.1.1). Dashboard 2.0 still at 1.30.0 (upgrade pending; re-test §3.4 Vue patterns afterwards).
+2. **Self-contained flows** (per-node module declarations instead of `functionGlobalContext`) — still recommended; `functionExternalModules: true` is already set.
+3. ~~Persistent context~~ — **done** (§2.3 C).
+4. ~~Git + CLAUDE.md~~ — **done** (this repo; `CLAUDE.md` auto-loads the workflow).
+5. ~~MCP server config~~ — **done** (`.mcp.json`, project scope, package `node-red-mcp-server`; requires `NODE_RED_TOKEN` env var). The Admin HTTP API (`/flows`, Bearer token from `settings.js`) remains the reliable fallback — full-flow `POST /flows` with `Node-RED-Deployment-Type: full` is the proven update path. Live global context is readable at `GET /context/global/<key>`.
 
 ### Working agreements for AI-driven flow edits (carry over)
 - Small fix touching ≤2 nodes → provide **full code of each module**, identified by its exact Node-RED UI name (e.g. *"JSON Rules Engine"* in group *LOGIC KERNEL*).
-- Larger change → regenerate and deliver the **entire flow JSON** for clean re-import (delete `flows.json` first), avoiding manual merge errors.
-- `update-flows` via MCP requires properly stringified JSON; **complete flow updates are more reliable than partial ones**, especially when group membership or wiring changes.
+- Larger change → regenerate and deliver the **entire flow JSON** for clean re-import, avoiding manual merge errors. Keep repo `flows.json` and the live system in sync (deploy from the repo file).
+- **Rules/config work should NOT touch the flow at all** — use the BMS API (§3.11) or the `/bms-*` slash commands.
+- After any change, verify via `GET /bms/firelog` (or the Logic Inspector) that rules load **and fire** — never declare success on import alone.
 
 ---
 
 ## 10. Next Phase: Removing Copy-Paste (UX Directions)
+
+> **Status 2026-06-12:** copy-paste is already dead for the *engineering* workflow —
+> **Track 1 shipped**: the BMS HTTP API (§3.11) + Claude Code slash commands
+> (`/bms-status`, `/bms-apply`, `/bms-debug`, `/bms-simulate`). This is a lightweight
+> REST realization of Option B's tool set (`get_inventory`→`/bms/context`,
+> `apply_config`→`/bms/config`, `read/write_point`→`/bms/points`), and
+> `BMS.applyConfig` is the shared seam Option A's tool call will reuse.
+> **Next: Option A** (in-dashboard chat) for the *end-user/demo* workflow.
 
 Goal: interact with the AI **from within the dashboard**, no prompt/JSON shuttling. Three viable architectures, in increasing ambition:
 
@@ -260,12 +314,17 @@ Pragmatic path: **A first** (days of work, kills copy-paste immediately), evolvi
 
 ---
 
-## 11. File Inventory for Transfer
+## 11. File Inventory
 
 | File | Role |
 |---|---|
-| `20260112_flows.json` | Complete V12 flow (72 nodes) — the system itself. |
-| `AI_BMS_Project_Handover.md` | This document — authoritative. |
-| `AI_BMS_BOOTSTRAP_PROMPT.md` | Prompt to initialize the new AI instance. |
-| `AI_BMS_documentation.docx` | Historical V8 doc — background only, superseded. |
-| `~/.node-red/settings.js` | **Must be transferred or recreated** (functionGlobalContext + OWM key re-entry). |
+| `flows.json` | Complete V12.1 flow (83 nodes, 10 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
+| `settings.js` | Node-RED config with secrets stripped (functionGlobalContext + contextStorage + adminAuth skeleton). |
+| `handover/AI_BMS_Project_Handover.md` | This document — architecture authority. |
+| `handover/AI_BMS_BOOTSTRAP_PROMPT.md` | First message for a new AI instance taking over. |
+| `audit/2026-06-12_audit.md` | Full audit; current issue list with fix statuses. |
+| `docs/BMS_CONFIG_SCHEMA.md` | Canonical AI-config schema + BMS HTTP API reference. |
+| `docs/AI_BMS_history.md` | Historical V8 documentation (converted from the old `.docx`) — background only, superseded. |
+| `.claude/commands/bms-*.md` | Claude Code slash commands (status / apply / debug / simulate). |
+| `.mcp.json` | Node-RED MCP server config (project scope; needs `NODE_RED_TOKEN`). |
+| `~/.node-red/settings.js` | Live copy of `settings.js` + real secrets (bcrypt admin hash, API token, OWM key in credential store). |
