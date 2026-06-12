@@ -57,3 +57,90 @@ claude
 ```
 
 `CLAUDE.md` points the session at the handover documents; paste `handover/AI_BMS_BOOTSTRAP_PROMPT.md` as the first message of an initial takeover session. Working agreements (full code per named module for small fixes; full flow JSON for larger changes) are defined in the handover doc §9.
+
+### Node-RED MCP Server — setup & secrets
+
+Claude Code edits the live flows through [`node-red-mcp-server`](https://github.com/karavaev-evgeniy/node-red-mcp-server), an MCP bridge to the Node-RED Admin API (tools: `get-flows`, `update-flows`, `inject`, `list-tabs`, `search-nodes`, `get-diagnostics`, …). It is declared at **project scope** in [`.mcp.json`](.mcp.json) (committed), and authenticates with a static API token that is **never committed** — the config references the `NODE_RED_TOKEN` environment variable instead.
+
+#### One-time setup on a new machine
+
+**1. Generate the token** (any long random string; hex avoids quoting issues):
+
+```bash
+openssl rand -hex 32
+```
+
+**2. Declare it in `~/.node-red/settings.js`** — the same token, under `adminAuth`:
+
+```js
+adminAuth: {
+    type: "credentials",
+    users: [{ username: "admin", password: "<bcrypt hash>", permissions: "*" }],
+    tokens: [
+        { token: "<paste the generated token>", user: "admin", scope: ["*"] }
+    ]
+},
+```
+
+(The repo's `settings.js` ships with a `REPLACE_WITH_STATIC_API_TOKEN` placeholder at this exact spot.)
+
+**3. Export it in your WSL shell profile** — same value again:
+
+```bash
+echo 'export NODE_RED_TOKEN="<paste the generated token>"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+> Tip: if pasting into the terminal leaves you at a `>` continuation prompt, a quote got mangled — press Ctrl-C and retype, or edit `~/.bashrc` with nano instead.
+
+**4. Restart Node-RED** so `settings.js` is re-read, then verify the Admin API accepts the token:
+
+```bash
+pm2 restart node-red     # or stop/start your foreground instance
+curl -H "Authorization: Bearer $NODE_RED_TOKEN" http://127.0.0.1:1880/settings | head -c 200
+```
+
+A JSON response = OK. `401 Unauthorized` = the value in `settings.js` and the env var differ, or Node-RED wasn't restarted.
+
+#### Registering the server (only if `.mcp.json` is absent)
+
+The repo already contains `.mcp.json`, so cloning is normally enough. To recreate it:
+
+```bash
+claude mcp add --transport stdio --scope project node-red \
+  --env NODE_RED_URL=http://127.0.0.1:1880 \
+  --env NODE_RED_TOKEN='${NODE_RED_TOKEN}' \
+  -- npx -y node-red-mcp-server
+```
+
+The single quotes are deliberate: they keep the literal `${NODE_RED_TOKEN}` in `.mcp.json`, which Claude Code expands from the environment at session start. The committed file must look like this — a placeholder, never a real token:
+
+```json
+{
+  "mcpServers": {
+    "node-red": {
+      "command": "npx",
+      "args": ["-y", "node-red-mcp-server"],
+      "env": {
+        "NODE_RED_URL": "http://127.0.0.1:1880",
+        "NODE_RED_TOKEN": "${NODE_RED_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+#### Verifying from Claude Code
+
+```bash
+cd <repo> && claude     # approve the project MCP server when prompted
+```
+
+In the session: `/mcp` should list **node-red — connected**; then ask it to run `list-tabs` — expected answer includes the tab `AI BMS V12 (Physics Simulator)`.
+
+#### Secret rules & troubleshooting
+
+- **Where each copy of the token lives:** real value in `~/.node-red/settings.js` (local only) and `~/.bashrc` (local only); placeholder in the committed `settings.js` and `.mcp.json`. Before any push: `git diff --cached` must show placeholders only.
+- **Rotating the token:** regenerate (step 1), update `settings.js` + `~/.bashrc`, restart Node-RED, restart Claude Code. Rotate immediately if the token was ever pasted into a chat, issue, or log.
+- **Claude Code can't see a token you just exported:** the environment is captured at launch. `/exit`, then `source ~/.bashrc`, then `claude --continue` to resume the same conversation with the new environment.
+- **MCP tools fail but curl works:** check `/mcp` for the server status and confirm Node-RED is running (`pm2 status` / `pkill -0 -f node-red`).
