@@ -1,0 +1,1568 @@
+[
+    {
+        "id": "tab_bms_v9",
+        "type": "tab",
+        "label": "AI BMS V12 (Physics Simulator)",
+        "disabled": false,
+        "info": "AI-Driven BMS with physics simulation and interactive prompts"
+    },
+    {
+        "id": "grp_logic_kernel",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "LOGIC KERNEL",
+        "style": {
+            "stroke": "#e2d96e",
+            "fill": "#fffbe6",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "node_tick",
+            "node_facts",
+            "node_engine",
+            "node_router",
+            "node_state_mgr",
+            "node_group_mgr",
+            "node_safety",
+            "cf352adf5f78d03f"
+        ],
+        "x": -6,
+        "y": 39,
+        "w": 1252,
+        "h": 202
+    },
+    {
+        "id": "grp_dashboard",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "DASHBOARD ENGINE",
+        "style": {
+            "stroke": "#ddaa99",
+            "fill": "#ffece6",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "node_dash_merge",
+            "node_dash_render",
+            "node_dash_filter"
+        ],
+        "x": 514,
+        "y": 259,
+        "w": 692,
+        "h": 82
+    },
+    {
+        "id": "grp_physics",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "PHYSICS SIMULATOR (removable)",
+        "style": {
+            "stroke": "#ff6b6b",
+            "fill": "#ffe8e8",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "physics_tick",
+            "physics_engine"
+        ],
+        "x": 14,
+        "y": 259,
+        "w": 432,
+        "h": 82
+    },
+    {
+        "id": "grp_simulator",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "HARDWARE SIMULATOR",
+        "style": {
+            "label": true,
+            "stroke": "#92d04f",
+            "fill": "#c8e7a7",
+            "color": "#000000"
+        },
+        "nodes": [
+            "sim_refresh_btn",
+            "sim_auto_refresh",
+            "sim_build_ui",
+            "sim_render_ui",
+            "sim_write_sensor"
+        ],
+        "x": 594,
+        "y": 619,
+        "w": 712,
+        "h": 122
+    },
+    {
+        "id": "grp_ai_config",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "AI CONFIGURATION",
+        "style": {
+            "stroke": "#9363b7",
+            "fill": "#dbcbe7",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "ai_gen_btn",
+            "ai_gen_func",
+            "ai_prompt_template",
+            "ai_import_template",
+            "ai_parse",
+            "ai_feedback"
+        ],
+        "x": 14,
+        "y": 419,
+        "w": 672,
+        "h": 182
+    },
+    {
+        "id": "grp_behavior_ui",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "BEHAVIOR AGENTS UI",
+        "style": {
+            "stroke": "#ff0000",
+            "fill": "#ffbfbf",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "logic_inspect_btn",
+            "logic_auto_refresh",
+            "logic_inspect_func",
+            "logic_inspect_view"
+        ],
+        "x": 14,
+        "y": 619,
+        "w": 532,
+        "h": 122
+    },
+    {
+        "id": "grp_env_data",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "VIRTUAL POINTS (Sun/Time)",
+        "style": {
+            "stroke": "#f5a623",
+            "fill": "#fff4e0",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "env_tick",
+            "env_sun_calc",
+            "env_time_update"
+        ],
+        "x": 14,
+        "y": 759,
+        "w": 402,
+        "h": 142
+    },
+    {
+        "id": "grp_weather",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "WEATHER INTEGRATION",
+        "style": {
+            "stroke": "#2196f3",
+            "fill": "#e3f2fd",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "weather_settings_ui",
+            "weather_save_location",
+            "weather_prepare",
+            "weather_owm",
+            "weather_parse",
+            "weather_settings_tick",
+            "weather_settings_data",
+            "weather_periodic_tick"
+        ],
+        "x": 14,
+        "y": 919,
+        "w": 992,
+        "h": 142
+    },
+    {
+        "id": "grp_device_mgr",
+        "type": "group",
+        "z": "tab_bms_v9",
+        "name": "DEVICE MANAGER",
+        "style": {
+            "stroke": "#00bcd4",
+            "fill": "#e0f7fa",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "device_auto_refresh",
+            "device_refresh_btn",
+            "device_build_data",
+            "device_manager_ui",
+            "device_tag_handler"
+        ],
+        "x": 14,
+        "y": 1079,
+        "w": 812,
+        "h": 122
+    },
+    {
+        "id": "conf_ui_base",
+        "type": "ui-base",
+        "name": "AI BMS Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 5,
+        "showDisconnectNotification": true,
+        "allowInstall": true
+    },
+    {
+        "id": "conf_theme",
+        "type": "ui-theme",
+        "name": "Modern Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#667eea",
+            "bgPage": "#f5f7fa",
+            "groupBg": "#ffffff",
+            "groupOutline": "#e0e0e0"
+        }
+    },
+    {
+        "id": "page_ai",
+        "type": "ui-page",
+        "name": "AI Configuration",
+        "ui": "conf_ui_base",
+        "path": "/ai-config",
+        "icon": "mdi-robot",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "page_control",
+        "type": "ui-page",
+        "name": "Control Panel",
+        "ui": "conf_ui_base",
+        "path": "/control",
+        "icon": "mdi-view-dashboard",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "page_logic",
+        "type": "ui-page",
+        "name": "Logic Inspector",
+        "ui": "conf_ui_base",
+        "path": "/logic",
+        "icon": "mdi-file-tree",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "order": 3,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "page_simulator",
+        "type": "ui-page",
+        "name": "Hardware Simulator",
+        "ui": "conf_ui_base",
+        "path": "/simulator",
+        "icon": "mdi-developer-board",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Small Desktop",
+                "px": 768,
+                "cols": 9
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 4,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "grp_ai_prompt",
+        "type": "ui-group",
+        "name": "System Prompt Generator",
+        "page": "page_ai",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "grp_ai_import",
+        "type": "ui-group",
+        "name": "Import AI Configuration",
+        "page": "page_ai",
+        "width": "12",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "grp_control_widgets",
+        "type": "ui-group",
+        "name": "Control Widgets",
+        "page": "page_control",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "grp_logic_view",
+        "type": "ui-group",
+        "name": "Behavior Agents",
+        "page": "page_logic",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "grp_sim_sensors",
+        "type": "ui-group",
+        "name": "Sensor Simulation",
+        "page": "page_simulator",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "page_settings",
+        "type": "ui-page",
+        "name": "Settings",
+        "ui": "conf_ui_base",
+        "path": "/settings",
+        "icon": "mdi-cog",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Small Desktop",
+                "px": 768,
+                "cols": 9
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 6,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "grp_location_settings",
+        "type": "ui-group",
+        "name": "Location & Weather",
+        "page": "page_settings",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "page_devices",
+        "type": "ui-page",
+        "name": "Device Manager",
+        "ui": "conf_ui_base",
+        "path": "/devices",
+        "icon": "mdi-chip",
+        "layout": "grid",
+        "theme": "conf_theme",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Small Desktop",
+                "px": 768,
+                "cols": 9
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 5,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "grp_device_manager",
+        "type": "ui-group",
+        "name": "Device & Tag Manager",
+        "page": "page_devices",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "node_boot",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "name": "Boot System",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 20,
+        "wires": [
+            [
+                "node_init"
+            ]
+        ]
+    },
+    {
+        "id": "node_init",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "name": "Initialize System (V12)",
+        "func": "const SunCalc = global.get('SunCalc');\n\n// BACnet points - values only (simulated hardware layer)\nconst bacnetPoints = {\n    // FLOOR 1 - Lobby\n    'f1_lobby_temp': { objectName: 'Lobby Temperature', value: 21.5, units: '°C', access: 'read_only' },\n    'f1_lobby_hum': { objectName: 'Lobby Humidity', value: 45, units: '%', access: 'read_only' },\n    'f1_lobby_co2': { objectName: 'Lobby CO2', value: 450, units: 'ppm', access: 'read_only' },\n    'f1_lobby_motion': { objectName: 'Lobby Motion', value: false, units: 'bool', access: 'read_only' },\n    'f1_lobby_lux': { objectName: 'Lobby Light Level', value: 300, units: 'lux', access: 'read_only' },\n    'f1_lobby_lamp': { objectName: 'Lobby Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f1_lobby_temp_setpoint': { objectName: 'Lobby Temp Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f1_lobby_vent': { objectName: 'Lobby Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 1 - Corridor\n    'f1_corr_temp': { objectName: 'F1 Corridor Temp', value: 20.5, units: '°C', access: 'read_only' },\n    'f1_corr_motion': { objectName: 'F1 Corridor Motion', value: false, units: 'bool', access: 'read_only' },\n    'f1_corr_lux': { objectName: 'F1 Corridor Light', value: 150, units: 'lux', access: 'read_only' },\n    'f1_corr_lamp': { objectName: 'F1 Corridor Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f1_corr_temp_setpoint': { objectName: 'F1 Corridor Setpoint', value: 19, units: '°C', access: 'read_write', min: 15, max: 28 },\n\n    // FLOOR 1 - Meeting Room\n    'f1_meet_temp': { objectName: 'Meeting Room Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f1_meet_hum': { objectName: 'Meeting Room Humidity', value: 50, units: '%', access: 'read_only' },\n    'f1_meet_co2': { objectName: 'Meeting Room CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f1_meet_motion': { objectName: 'Meeting Room Motion', value: false, units: 'bool', access: 'read_only' },\n    'f1_meet_lux': { objectName: 'Meeting Room Light', value: 250, units: 'lux', access: 'read_only' },\n    'f1_meet_lamp': { objectName: 'Meeting Room Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f1_meet_temp_setpoint': { objectName: 'Meeting Room Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f1_meet_vent': { objectName: 'Meeting Room Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n    'f1_meet_booking': { objectName: 'Meeting Room Booked', value: false, units: 'bool', access: 'read_write' },\n\n    // FLOOR 1 - Storage\n    'f1_stor_temp': { objectName: 'Storage Temp', value: 18.0, units: '°C', access: 'read_only' },\n    'f1_stor_motion': { objectName: 'Storage Motion', value: false, units: 'bool', access: 'read_only' },\n    'f1_stor_lamp': { objectName: 'Storage Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f1_stor_temp_setpoint': { objectName: 'Storage Setpoint', value: 16, units: '°C', access: 'read_write', min: 10, max: 25 },\n\n    // FLOOR 2 - Corridor\n    'f2_corr_temp': { objectName: 'F2 Corridor Temp', value: 20.5, units: '°C', access: 'read_only' },\n    'f2_corr_motion': { objectName: 'F2 Corridor Motion', value: false, units: 'bool', access: 'read_only' },\n    'f2_corr_lux': { objectName: 'F2 Corridor Light', value: 150, units: 'lux', access: 'read_only' },\n    'f2_corr_lamp': { objectName: 'F2 Corridor Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f2_corr_temp_setpoint': { objectName: 'F2 Corridor Setpoint', value: 19, units: '°C', access: 'read_write', min: 15, max: 28 },\n\n    // FLOOR 2 - Office 1\n    'f2_off1_temp': { objectName: 'F2 Office 1 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f2_off1_hum': { objectName: 'F2 Office 1 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f2_off1_co2': { objectName: 'F2 Office 1 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f2_off1_motion': { objectName: 'F2 Office 1 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f2_off1_lux': { objectName: 'F2 Office 1 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f2_off1_lamp': { objectName: 'F2 Office 1 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f2_off1_temp_setpoint': { objectName: 'F2 Office 1 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f2_off1_vent': { objectName: 'F2 Office 1 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 2 - Office 2\n    'f2_off2_temp': { objectName: 'F2 Office 2 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f2_off2_hum': { objectName: 'F2 Office 2 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f2_off2_co2': { objectName: 'F2 Office 2 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f2_off2_motion': { objectName: 'F2 Office 2 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f2_off2_lux': { objectName: 'F2 Office 2 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f2_off2_lamp': { objectName: 'F2 Office 2 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f2_off2_temp_setpoint': { objectName: 'F2 Office 2 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f2_off2_vent': { objectName: 'F2 Office 2 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 2 - Office 3\n    'f2_off3_temp': { objectName: 'F2 Office 3 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f2_off3_hum': { objectName: 'F2 Office 3 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f2_off3_co2': { objectName: 'F2 Office 3 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f2_off3_motion': { objectName: 'F2 Office 3 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f2_off3_lux': { objectName: 'F2 Office 3 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f2_off3_lamp': { objectName: 'F2 Office 3 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f2_off3_temp_setpoint': { objectName: 'F2 Office 3 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f2_off3_vent': { objectName: 'F2 Office 3 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 3 - Corridor\n    'f3_corr_temp': { objectName: 'F3 Corridor Temp', value: 20.5, units: '°C', access: 'read_only' },\n    'f3_corr_motion': { objectName: 'F3 Corridor Motion', value: false, units: 'bool', access: 'read_only' },\n    'f3_corr_lux': { objectName: 'F3 Corridor Light', value: 150, units: 'lux', access: 'read_only' },\n    'f3_corr_lamp': { objectName: 'F3 Corridor Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f3_corr_temp_setpoint': { objectName: 'F3 Corridor Setpoint', value: 19, units: '°C', access: 'read_write', min: 15, max: 28 },\n\n    // FLOOR 3 - Office 1\n    'f3_off1_temp': { objectName: 'F3 Office 1 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f3_off1_hum': { objectName: 'F3 Office 1 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f3_off1_co2': { objectName: 'F3 Office 1 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f3_off1_motion': { objectName: 'F3 Office 1 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f3_off1_lux': { objectName: 'F3 Office 1 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f3_off1_lamp': { objectName: 'F3 Office 1 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f3_off1_temp_setpoint': { objectName: 'F3 Office 1 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f3_off1_vent': { objectName: 'F3 Office 1 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 3 - Office 2\n    'f3_off2_temp': { objectName: 'F3 Office 2 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f3_off2_hum': { objectName: 'F3 Office 2 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f3_off2_co2': { objectName: 'F3 Office 2 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f3_off2_motion': { objectName: 'F3 Office 2 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f3_off2_lux': { objectName: 'F3 Office 2 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f3_off2_lamp': { objectName: 'F3 Office 2 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f3_off2_temp_setpoint': { objectName: 'F3 Office 2 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f3_off2_vent': { objectName: 'F3 Office 2 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // FLOOR 3 - Office 3\n    'f3_off3_temp': { objectName: 'F3 Office 3 Temp', value: 21.0, units: '°C', access: 'read_only' },\n    'f3_off3_hum': { objectName: 'F3 Office 3 Humidity', value: 45, units: '%', access: 'read_only' },\n    'f3_off3_co2': { objectName: 'F3 Office 3 CO2', value: 420, units: 'ppm', access: 'read_only' },\n    'f3_off3_motion': { objectName: 'F3 Office 3 Motion', value: false, units: 'bool', access: 'read_only' },\n    'f3_off3_lux': { objectName: 'F3 Office 3 Light', value: 400, units: 'lux', access: 'read_only' },\n    'f3_off3_lamp': { objectName: 'F3 Office 3 Lamp', value: false, units: 'bool', access: 'read_write' },\n    'f3_off3_temp_setpoint': { objectName: 'F3 Office 3 Setpoint', value: 21, units: '°C', access: 'read_write', min: 15, max: 28 },\n    'f3_off3_vent': { objectName: 'F3 Office 3 Ventilation', value: 20, units: '%', access: 'read_write', min: 0, max: 100 },\n\n    // GLOBAL / OUTSIDE\n    'glob_outside_temp': { objectName: 'Outside Temperature', value: 12, units: '°C', access: 'read_only' },\n    'glob_outside_lux': { objectName: 'Outside Light Level', value: 8000, units: 'lux', access: 'read_only' }\n};\n\n// BMS Metadata - tags and zone assignments (separate from hardware)\nconst bmsMetadata = {\n    'f1_lobby_temp': { tags: ['floor1', 'lobby', 'sensor', 'temperature'], zone: 'F1_Lobby' },\n    'f1_lobby_hum': { tags: ['floor1', 'lobby', 'sensor', 'humidity'], zone: 'F1_Lobby' },\n    'f1_lobby_co2': { tags: ['floor1', 'lobby', 'sensor', 'co2', 'iaq'], zone: 'F1_Lobby' },\n    'f1_lobby_motion': { tags: ['floor1', 'lobby', 'sensor', 'motion', 'occupancy'], zone: 'F1_Lobby' },\n    'f1_lobby_lux': { tags: ['floor1', 'lobby', 'sensor', 'light'], zone: 'F1_Lobby' },\n    'f1_lobby_lamp': { tags: ['floor1', 'lobby', 'actuator', 'lighting'], zone: 'F1_Lobby' },\n    'f1_lobby_temp_setpoint': { tags: ['floor1', 'lobby', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F1_Lobby' },\n    'f1_lobby_vent': { tags: ['floor1', 'lobby', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F1_Lobby' },\n    'f1_corr_temp': { tags: ['floor1', 'corridor', 'sensor', 'temperature'], zone: 'F1_Corridor' },\n    'f1_corr_motion': { tags: ['floor1', 'corridor', 'sensor', 'motion', 'occupancy'], zone: 'F1_Corridor' },\n    'f1_corr_lux': { tags: ['floor1', 'corridor', 'sensor', 'light'], zone: 'F1_Corridor' },\n    'f1_corr_lamp': { tags: ['floor1', 'corridor', 'actuator', 'lighting'], zone: 'F1_Corridor' },\n    'f1_corr_temp_setpoint': { tags: ['floor1', 'corridor', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F1_Corridor' },\n    'f1_meet_temp': { tags: ['floor1', 'meeting', 'sensor', 'temperature'], zone: 'F1_Meeting' },\n    'f1_meet_hum': { tags: ['floor1', 'meeting', 'sensor', 'humidity'], zone: 'F1_Meeting' },\n    'f1_meet_co2': { tags: ['floor1', 'meeting', 'sensor', 'co2', 'iaq'], zone: 'F1_Meeting' },\n    'f1_meet_motion': { tags: ['floor1', 'meeting', 'sensor', 'motion', 'occupancy'], zone: 'F1_Meeting' },\n    'f1_meet_lux': { tags: ['floor1', 'meeting', 'sensor', 'light'], zone: 'F1_Meeting' },\n    'f1_meet_lamp': { tags: ['floor1', 'meeting', 'actuator', 'lighting'], zone: 'F1_Meeting' },\n    'f1_meet_temp_setpoint': { tags: ['floor1', 'meeting', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F1_Meeting' },\n    'f1_meet_vent': { tags: ['floor1', 'meeting', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F1_Meeting' },\n    'f1_meet_booking': { tags: ['floor1', 'meeting', 'booking', 'schedule'], zone: 'F1_Meeting' },\n    'f1_stor_temp': { tags: ['floor1', 'storage', 'sensor', 'temperature'], zone: 'F1_Storage' },\n    'f1_stor_motion': { tags: ['floor1', 'storage', 'sensor', 'motion', 'occupancy'], zone: 'F1_Storage' },\n    'f1_stor_lamp': { tags: ['floor1', 'storage', 'actuator', 'lighting'], zone: 'F1_Storage' },\n    'f1_stor_temp_setpoint': { tags: ['floor1', 'storage', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F1_Storage' },\n    'f2_corr_temp': { tags: ['floor2', 'corridor', 'sensor', 'temperature'], zone: 'F2_Corridor' },\n    'f2_corr_motion': { tags: ['floor2', 'corridor', 'sensor', 'motion', 'occupancy'], zone: 'F2_Corridor' },\n    'f2_corr_lux': { tags: ['floor2', 'corridor', 'sensor', 'light'], zone: 'F2_Corridor' },\n    'f2_corr_lamp': { tags: ['floor2', 'corridor', 'actuator', 'lighting'], zone: 'F2_Corridor' },\n    'f2_corr_temp_setpoint': { tags: ['floor2', 'corridor', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F2_Corridor' },\n    'f2_off1_temp': { tags: ['floor2', 'office', 'sensor', 'temperature'], zone: 'F2_Office1' },\n    'f2_off1_hum': { tags: ['floor2', 'office', 'sensor', 'humidity'], zone: 'F2_Office1' },\n    'f2_off1_co2': { tags: ['floor2', 'office', 'sensor', 'co2', 'iaq'], zone: 'F2_Office1' },\n    'f2_off1_motion': { tags: ['floor2', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F2_Office1' },\n    'f2_off1_lux': { tags: ['floor2', 'office', 'sensor', 'light'], zone: 'F2_Office1' },\n    'f2_off1_lamp': { tags: ['floor2', 'office', 'actuator', 'lighting'], zone: 'F2_Office1' },\n    'f2_off1_temp_setpoint': { tags: ['floor2', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F2_Office1' },\n    'f2_off1_vent': { tags: ['floor2', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F2_Office1' },\n    'f2_off2_temp': { tags: ['floor2', 'office', 'sensor', 'temperature'], zone: 'F2_Office2' },\n    'f2_off2_hum': { tags: ['floor2', 'office', 'sensor', 'humidity'], zone: 'F2_Office2' },\n    'f2_off2_co2': { tags: ['floor2', 'office', 'sensor', 'co2', 'iaq'], zone: 'F2_Office2' },\n    'f2_off2_motion': { tags: ['floor2', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F2_Office2' },\n    'f2_off2_lux': { tags: ['floor2', 'office', 'sensor', 'light'], zone: 'F2_Office2' },\n    'f2_off2_lamp': { tags: ['floor2', 'office', 'actuator', 'lighting'], zone: 'F2_Office2' },\n    'f2_off2_temp_setpoint': { tags: ['floor2', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F2_Office2' },\n    'f2_off2_vent': { tags: ['floor2', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F2_Office2' },\n    'f2_off3_temp': { tags: ['floor2', 'office', 'sensor', 'temperature'], zone: 'F2_Office3' },\n    'f2_off3_hum': { tags: ['floor2', 'office', 'sensor', 'humidity'], zone: 'F2_Office3' },\n    'f2_off3_co2': { tags: ['floor2', 'office', 'sensor', 'co2', 'iaq'], zone: 'F2_Office3' },\n    'f2_off3_motion': { tags: ['floor2', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F2_Office3' },\n    'f2_off3_lux': { tags: ['floor2', 'office', 'sensor', 'light'], zone: 'F2_Office3' },\n    'f2_off3_lamp': { tags: ['floor2', 'office', 'actuator', 'lighting'], zone: 'F2_Office3' },\n    'f2_off3_temp_setpoint': { tags: ['floor2', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F2_Office3' },\n    'f2_off3_vent': { tags: ['floor2', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F2_Office3' },\n    'f3_corr_temp': { tags: ['floor3', 'corridor', 'sensor', 'temperature'], zone: 'F3_Corridor' },\n    'f3_corr_motion': { tags: ['floor3', 'corridor', 'sensor', 'motion', 'occupancy'], zone: 'F3_Corridor' },\n    'f3_corr_lux': { tags: ['floor3', 'corridor', 'sensor', 'light'], zone: 'F3_Corridor' },\n    'f3_corr_lamp': { tags: ['floor3', 'corridor', 'actuator', 'lighting'], zone: 'F3_Corridor' },\n    'f3_corr_temp_setpoint': { tags: ['floor3', 'corridor', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F3_Corridor' },\n    'f3_off1_temp': { tags: ['floor3', 'office', 'sensor', 'temperature'], zone: 'F3_Office1' },\n    'f3_off1_hum': { tags: ['floor3', 'office', 'sensor', 'humidity'], zone: 'F3_Office1' },\n    'f3_off1_co2': { tags: ['floor3', 'office', 'sensor', 'co2', 'iaq'], zone: 'F3_Office1' },\n    'f3_off1_motion': { tags: ['floor3', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F3_Office1' },\n    'f3_off1_lux': { tags: ['floor3', 'office', 'sensor', 'light'], zone: 'F3_Office1' },\n    'f3_off1_lamp': { tags: ['floor3', 'office', 'actuator', 'lighting'], zone: 'F3_Office1' },\n    'f3_off1_temp_setpoint': { tags: ['floor3', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F3_Office1' },\n    'f3_off1_vent': { tags: ['floor3', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F3_Office1' },\n    'f3_off2_temp': { tags: ['floor3', 'office', 'sensor', 'temperature'], zone: 'F3_Office2' },\n    'f3_off2_hum': { tags: ['floor3', 'office', 'sensor', 'humidity'], zone: 'F3_Office2' },\n    'f3_off2_co2': { tags: ['floor3', 'office', 'sensor', 'co2', 'iaq'], zone: 'F3_Office2' },\n    'f3_off2_motion': { tags: ['floor3', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F3_Office2' },\n    'f3_off2_lux': { tags: ['floor3', 'office', 'sensor', 'light'], zone: 'F3_Office2' },\n    'f3_off2_lamp': { tags: ['floor3', 'office', 'actuator', 'lighting'], zone: 'F3_Office2' },\n    'f3_off2_temp_setpoint': { tags: ['floor3', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F3_Office2' },\n    'f3_off2_vent': { tags: ['floor3', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F3_Office2' },\n    'f3_off3_temp': { tags: ['floor3', 'office', 'sensor', 'temperature'], zone: 'F3_Office3' },\n    'f3_off3_hum': { tags: ['floor3', 'office', 'sensor', 'humidity'], zone: 'F3_Office3' },\n    'f3_off3_co2': { tags: ['floor3', 'office', 'sensor', 'co2', 'iaq'], zone: 'F3_Office3' },\n    'f3_off3_motion': { tags: ['floor3', 'office', 'sensor', 'motion', 'occupancy'], zone: 'F3_Office3' },\n    'f3_off3_lux': { tags: ['floor3', 'office', 'sensor', 'light'], zone: 'F3_Office3' },\n    'f3_off3_lamp': { tags: ['floor3', 'office', 'actuator', 'lighting'], zone: 'F3_Office3' },\n    'f3_off3_temp_setpoint': { tags: ['floor3', 'office', 'actuator', 'hvac_temp', 'setpoint'], zone: 'F3_Office3' },\n    'f3_off3_vent': { tags: ['floor3', 'office', 'actuator', 'hvac_vent', 'ventilation'], zone: 'F3_Office3' },\n    'glob_outside_temp': { tags: ['global', 'weather', 'sensor', 'temperature'], zone: 'External' },\n    'glob_outside_lux': { tags: ['global', 'weather', 'sensor', 'light'], zone: 'External' }\n};\n\n// Virtual points (computed/system values)\nconst defaultLat = 48.8566;\nconst defaultLon = 2.3522;\n\nconst virtualPoints = {\n    'physics_enabled': { name: 'Physics Simulator Enabled', value: true, units: 'bool', writable: true }, //enable/disable the integrated physics simulator\n    'glob_time_hour': { name: 'Current Hour', value: new Date().getHours(), units: 'h', source: 'system_clock' },\n    'glob_time_minutes': { name: 'Minutes Since Midnight', value: new Date().getHours() * 60 + new Date().getMinutes(), units: 'min', source: 'system_clock' },\n    'glob_time_day': { name: 'Day of Week', value: new Date().getDay() || 7, units: 'day', source: 'system_clock' },\n    'glob_time_minute_of_week': { name: 'Minute of Week', value: 0, units: 'min', source: 'system_clock' },\n    'glob_comfort_sp': { name: 'Global Comfort Setpoint', value: 21, units: '°C', writable: true, min: 18, max: 26 },\n    'glob_eco_sp': { name: 'Global Eco Setpoint', value: 16, units: '°C', writable: true, min: 12, max: 20 },\n    'sun_altitude': { name: 'Sun Altitude', value: 0, units: '°', source: 'suncalc' },\n    'sun_azimuth': { name: 'Sun Azimuth', value: 0, units: '°', source: 'suncalc' },\n    'sun_is_daylight': { name: 'Is Daylight', value: true, units: 'bool', source: 'suncalc' },\n    'sun_sunrise_minutes': { name: 'Sunrise Minutes', value: 420, units: 'min', source: 'suncalc' },\n    'sun_sunset_minutes': { name: 'Sunset Minutes', value: 1080, units: 'min', source: 'suncalc' },\n    'loc_latitude': { name: 'Latitude', value: defaultLat, units: '°', writable: true },\n    'loc_longitude': { name: 'Longitude', value: defaultLon, units: '°', writable: true },\n    'loc_timezone': { name: 'Timezone', value: 'Europe/Paris', units: '', writable: true },\n    'loc_city': { name: 'City', value: 'Paris', units: '', writable: true },\n    'loc_country': { name: 'Country', value: 'France', units: '', writable: true }\n};\n\n// Initialize sun position\nif (SunCalc) {\n    const now = new Date();\n    const sunPos = SunCalc.getPosition(now, defaultLat, defaultLon);\n    virtualPoints.sun_altitude.value = Math.round(sunPos.altitude * 180 / Math.PI * 10) / 10;\n    virtualPoints.sun_azimuth.value = Math.round(sunPos.azimuth * 180 / Math.PI * 10) / 10;\n    virtualPoints.sun_is_daylight.value = sunPos.altitude > 0;\n    \n    const times = SunCalc.getTimes(now, defaultLat, defaultLon);\n    if (times.sunrise) {\n        virtualPoints.sun_sunrise_minutes.value = times.sunrise.getHours() * 60 + times.sunrise.getMinutes();\n    }\n    if (times.sunset) {\n        virtualPoints.sun_sunset_minutes.value = times.sunset.getHours() * 60 + times.sunset.getMinutes();\n    }\n}\n\n// Store in global context\nglobal.set('bacnetPoints', bacnetPoints);\nglobal.set('bmsMetadata', bmsMetadata);\nglobal.set('virtualPoints', virtualPoints);\n\n// ========================================\n// BMS ABSTRACTION LAYER\n// ========================================\nconst BMS = {\n    // Get all values as flat object for rules engine\n    getValues: function() {\n        const bp = global.get('bacnetPoints') || {};\n        const vp = global.get('virtualPoints') || {};\n        const result = {};\n        \n        // Add all bacnet point values\n        Object.keys(bp).forEach(id => {\n            result[id] = bp[id].value;\n        });\n        \n        // Add all virtual point values\n        Object.keys(vp).forEach(id => {\n            result[id] = vp[id].value;\n        });\n        \n        return result;\n    },\n    \n    // Get single value\n    getValue: function(id) {\n        const bp = global.get('bacnetPoints') || {};\n        const vp = global.get('virtualPoints') || {};\n        if (bp[id] !== undefined) return bp[id].value;\n        if (vp[id] !== undefined) return vp[id].value;\n        return undefined;\n    },\n    \n    // Write value (with safety checks)\n    writeValue: function(id, value) {\n        const bp = global.get('bacnetPoints') || {};\n        const vp = global.get('virtualPoints') || {};\n        \n        if (bp[id]) {\n            if (bp[id].access !== 'read_write') return false;\n            if (bp[id].min !== undefined && value < bp[id].min) value = bp[id].min;\n            if (bp[id].max !== undefined && value > bp[id].max) value = bp[id].max;\n            bp[id].value = value;\n            global.set('bacnetPoints', bp);\n            return true;\n        }\n        \n        if (vp[id] && vp[id].writable) {\n            if (vp[id].min !== undefined && value < vp[id].min) value = vp[id].min;\n            if (vp[id].max !== undefined && value > vp[id].max) value = vp[id].max;\n            vp[id].value = value;\n            global.set('virtualPoints', vp);\n            return true;\n        }\n        \n        return false;\n    },\n    \n    // Set virtual point value directly (for computed values)\n    setVirtualValue: function(id, value) {\n        const vp = global.get('virtualPoints') || {};\n        if (vp[id]) {\n            vp[id].value = value;\n            global.set('virtualPoints', vp);\n            return true;\n        }\n        return false;\n    },\n    \n    // Get metadata for a point\n    getMetadata: function(id) {\n        const meta = global.get('bmsMetadata') || {};\n        return meta[id] || null;\n    }\n};\n\nglobal.set('BMS', BMS);\n\n// Initialize empty AI config stores\nif (!global.get('ruleGroups')) global.set('ruleGroups', []);\nif (!global.get('stateRegistry')) global.set('stateRegistry', []);\nif (!global.get('behaviorAgents')) global.set('behaviorAgents', []);\nif (!global.get('dashboardConfig')) global.set('dashboardConfig', { widgets: [] });\n\n// Count points\nconst sensorCount = Object.values(bacnetPoints).filter(p => p.access === 'read_only').length;\nconst actuatorCount = Object.values(bacnetPoints).filter(p => p.access === 'read_write').length;\nconst virtualCount = Object.keys(virtualPoints).length;\n\nnode.warn(`✓ AI BMS V12 Initialized: ${sensorCount} sensors, ${actuatorCount} actuators, ${virtualCount} virtual points + BMS API`);\nnode.status({ fill: 'green', shape: 'dot', text: `${sensorCount}S/${actuatorCount}A/${virtualCount}V` });\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 20,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "physics_tick",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_physics",
+        "name": "Physics ~2s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 3,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 300,
+        "wires": [
+            [
+                "physics_engine"
+            ]
+        ]
+    },
+    {
+        "id": "physics_engine",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_physics",
+        "name": "Physics Simulator",
+        "func": "// Check if physics simulation is enabled\nconst virtualPoints = global.get('virtualPoints') || {};\nconst physicsEnabled = virtualPoints['physics_enabled']?.value;\n\nif (physicsEnabled === false) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Disabled' });\n    return null;\n}\n\nconst bacnetPoints = global.get('bacnetPoints') || {};\nconst bmsMetadata = global.get('bmsMetadata') || {};\n\n// Get outside conditions\nconst outsideTemp = bacnetPoints['glob_outside_temp']?.value ?? 15;\nconst outsideLux = bacnetPoints['glob_outside_lux']?.value ?? 500;\n\n// ===== DYNAMIC ZONE DISCOVERY =====\n// Build zone structure from bmsMetadata\nconst zones = {};\n\nObject.entries(bmsMetadata).forEach(([id, meta]) => {\n    if (!meta.zone || !bacnetPoints[id]) return;\n    \n    const zoneName = meta.zone;\n    if (!zones[zoneName]) {\n        zones[zoneName] = {\n            temp_sensors: [],\n            temp_setpoints: [],\n            lux_sensors: [],\n            lamps: [],\n            co2_sensors: [],\n            motion_sensors: [],\n            vents: []\n        };\n    }\n    \n    const tags = meta.tags || [];\n    const point = bacnetPoints[id];\n    \n    // Categorize by tags\n    if (tags.includes('sensor') && tags.includes('temperature')) {\n        zones[zoneName].temp_sensors.push(id);\n    }\n    if (tags.includes('actuator') && tags.includes('hvac_temp') && tags.includes('setpoint')) {\n        zones[zoneName].temp_setpoints.push(id);\n    }\n    if (tags.includes('sensor') && tags.includes('light')) {\n        zones[zoneName].lux_sensors.push(id);\n    }\n    if (tags.includes('actuator') && tags.includes('lighting')) {\n        zones[zoneName].lamps.push(id);\n    }\n    if (tags.includes('sensor') && tags.includes('co2')) {\n        zones[zoneName].co2_sensors.push(id);\n    }\n    if (tags.includes('sensor') && (tags.includes('motion') || tags.includes('occupancy'))) {\n        zones[zoneName].motion_sensors.push(id);\n    }\n    if (tags.includes('actuator') && (tags.includes('hvac_vent') || tags.includes('ventilation'))) {\n        zones[zoneName].vents.push(id);\n    }\n});\n\n// ===== HELPER FUNCTIONS =====\n// Get average value from multiple sensors\nfunction getAvg(ids) {\n    const values = ids.map(id => bacnetPoints[id]?.value).filter(v => v !== undefined);\n    if (values.length === 0) return undefined;\n    return values.reduce((a, b) => a + b, 0) / values.length;\n}\n\n// Get any true value (OR logic for motion)\nfunction getAnyTrue(ids) {\n    return ids.some(id => bacnetPoints[id]?.value === true);\n}\n\n// Set value to all sensors in list\nfunction setAll(ids, value) {\n    ids.forEach(id => {\n        if (bacnetPoints[id]) bacnetPoints[id].value = value;\n    });\n}\n\nlet changes = 0;\nconst zoneCount = Object.keys(zones).length;\n\n// ===== PROCESS EACH ZONE =====\nObject.entries(zones).forEach(([zoneName, zone]) => {\n    \n    // ----- TEMPERATURE PHYSICS -----\n    // HVAC is properly dimensioned: always converges to setpoint\n    // Thermal exchange with outside creates load, not drift\n    if (zone.temp_sensors.length > 0 && zone.temp_setpoints.length > 0) {\n        const currentTemp = getAvg(zone.temp_sensors);\n        const setpoint = getAvg(zone.temp_setpoints);\n        \n        if (currentTemp !== undefined && setpoint !== undefined) {\n            const error = setpoint - currentTemp;\n            \n            // Only act if there's meaningful error\n            if (Math.abs(error) > 0.02) {\n                // Thermal load: heat exchange with outside\n                // Positive = losing heat, Negative = gaining heat\n                const thermalLoad = (currentTemp - outsideTemp) * 0.008;\n                \n                // HVAC response: proportional to error, overcomes thermal load\n                // HVAC capacity is sized to handle worst case + margin\n                const hvacMaxPower = 0.25; // Max degrees per tick\n                const hvacGain = 0.4; // Response gain (how aggressively it corrects)\n                const hvacResponse = Math.sign(error) * Math.min(hvacMaxPower, Math.abs(error) * hvacGain);\n                \n                // Net change: HVAC always wins, but thermal load affects rate\n                // When error and thermal load are same direction, faster convergence\n                // When opposite, slower but still converges\n                const netChange = hvacResponse - thermalLoad * 0.3; // HVAC dominates\n                \n                const newTemp = Math.round((currentTemp + netChange) * 10) / 10;\n                const clampedTemp = Math.max(5, Math.min(40, newTemp));\n                \n                setAll(zone.temp_sensors, clampedTemp);\n                changes++;\n            }\n        }\n    }\n    \n    // ----- LIGHT/LUX PHYSICS -----\n    // Lux responds to lamp state + ambient from outside\n    if (zone.lux_sensors.length > 0 && zone.lamps.length > 0) {\n        const currentLux = getAvg(zone.lux_sensors);\n        const anyLampOn = getAnyTrue(zone.lamps);\n        \n        if (currentLux !== undefined) {\n            // Ambient light from outside (windows let in ~2-5% of outside light)\n            const ambientLux = Math.min(300, Math.floor(outsideLux * 0.03));\n            \n            // Target lux based on lamp state\n            const lampContribution = anyLampOn ? 450 : 0;\n            const targetLux = ambientLux + lampContribution;\n            \n            const luxError = targetLux - currentLux;\n            \n            if (Math.abs(luxError) > 5) {\n                // Light changes quickly\n                const luxChange = Math.sign(luxError) * Math.min(100, Math.abs(luxError) * 0.5);\n                const newLux = Math.max(0, Math.round(currentLux + luxChange));\n                \n                setAll(zone.lux_sensors, newLux);\n                changes++;\n            }\n        }\n    }\n    \n    // ----- CO2 PHYSICS -----\n    // Occupancy generates CO2, ventilation removes it\n    if (zone.co2_sensors.length > 0 && zone.motion_sensors.length > 0) {\n        const currentCO2 = getAvg(zone.co2_sensors);\n        const isOccupied = getAnyTrue(zone.motion_sensors);\n        \n        if (currentCO2 !== undefined) {\n            // Outdoor CO2 baseline\n            const outdoorCO2 = 420;\n            \n            // Ventilation rate (0-100% mapped to 0.1-1.0)\n            let ventRate = 0.2; // Default 20%\n            if (zone.vents.length > 0) {\n                const ventValue = getAvg(zone.vents);\n                if (ventValue !== undefined) ventRate = Math.max(0.1, ventValue / 100);\n            }\n            \n            // CO2 generation from occupancy (~10-20 ppm per tick when occupied)\n            const co2Generation = isOccupied ? 12 : 0;\n            \n            // Ventilation effect: removes CO2 proportional to (indoor - outdoor) difference\n            const co2Removal = (currentCO2 - outdoorCO2) * ventRate * 0.03;\n            \n            // Natural infiltration (slow leak toward outdoor levels)\n            const infiltration = (currentCO2 - outdoorCO2) * 0.002;\n            \n            const netCO2Change = co2Generation - co2Removal - infiltration;\n            \n            if (Math.abs(netCO2Change) > 0.5) {\n                const newCO2 = Math.round(currentCO2 + netCO2Change);\n                const clampedCO2 = Math.max(400, Math.min(3000, newCO2));\n                \n                setAll(zone.co2_sensors, clampedCO2);\n                changes++;\n            }\n        }\n    }\n});\n\n// Update global store if changes made\nif (changes > 0) {\n    global.set('bacnetPoints', bacnetPoints);\n}\n\n// Status display\nconst tempInfo = outsideTemp.toFixed(1) + '°C out';\nnode.status({ \n    fill: changes > 0 ? 'green' : 'grey', \n    shape: 'dot', \n    text: `${changes} updates | ${zoneCount} zones | ${tempInfo}`\n});\n\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_tick",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "1s Heartbeat",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.5,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "cf352adf5f78d03f"
+            ]
+        ]
+    },
+    {
+        "id": "node_facts",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "Build Facts",
+        "func": "const BMS = global.get('BMS');\nconst cache = global.get('myStateCache');\nconst states = global.get('stateRegistry') || [];\nlet facts = BMS ? BMS.getValues() : {};\nif (cache) { states.forEach(s => { let v = cache.get(s.id); facts[s.id] = (v !== undefined) ? v : s.defaultValue; }); }\nelse { states.forEach(s => { facts[s.id] = s.defaultValue; }); }\nmsg.payload = facts;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 140,
+        "wires": [
+            [
+                "node_engine",
+                "node_dash_merge"
+            ]
+        ]
+    },
+    {
+        "id": "node_engine",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "JSON Rules Engine",
+        "func": "const { Engine } = global.get('jsonRulesEngine');\nconst engine = new Engine();\nconst groups = global.get('ruleGroups') || [];\n\n// Initialize rule tracking\nif (!global.get('ruleFireLog')) {\n    global.set('ruleFireLog', {});\n}\nconst fireLog = global.get('ruleFireLog');\n\n// Custom operators with defensive checks\nengine.addOperator('lessThanFact', (factValue, compareTo, almanac) => {\n    if (!almanac || typeof almanac.factValue !== 'function') return false;\n    return almanac.factValue(compareTo).then(compareValue => {\n        if (compareValue === undefined || compareValue === null) return false;\n        return factValue < compareValue;\n    }).catch(() => false);\n});\n\nengine.addOperator('greaterThanFact', (factValue, compareTo, almanac) => {\n    if (!almanac || typeof almanac.factValue !== 'function') return false;\n    return almanac.factValue(compareTo).then(compareValue => {\n        if (compareValue === undefined || compareValue === null) return false;\n        return factValue > compareValue;\n    }).catch(() => false);\n});\n\nengine.addOperator('equalFact', (factValue, compareTo, almanac) => {\n    if (!almanac || typeof almanac.factValue !== 'function') return false;\n    return almanac.factValue(compareTo).then(compareValue => {\n        if (compareValue === undefined) return false;\n        return factValue === compareValue;\n    }).catch(() => false);\n});\n\nengine.addOperator('lessThanInclusiveFact', (factValue, compareTo, almanac) => {\n    if (!almanac || typeof almanac.factValue !== 'function') return false;\n    return almanac.factValue(compareTo).then(compareValue => {\n        if (compareValue === undefined || compareValue === null) return false;\n        return factValue <= compareValue;\n    }).catch(() => false);\n});\n\nengine.addOperator('greaterThanInclusiveFact', (factValue, compareTo, almanac) => {\n    if (!almanac || typeof almanac.factValue !== 'function') return false;\n    return almanac.factValue(compareTo).then(compareValue => {\n        if (compareValue === undefined || compareValue === null) return false;\n        return factValue >= compareValue;\n    }).catch(() => false);\n});\n\nlet ruleCount = 0, errorCount = 0;\ngroups.forEach(g => {\n    if (g.rules && g.enabled !== false) {\n        g.rules.forEach(r => {\n            try {\n                if (!r.conditions || (!r.conditions.all && !r.conditions.any)) {\n                    throw new Error('conditions must have \"all\" or \"any\" array');\n                }\n                if (!r.event || !r.event.type) {\n                    throw new Error('event must have \"type\" field');\n                }\n                const rule = JSON.parse(JSON.stringify(r));\n                rule.name = '[' + g.name + '] ' + rule.name;\n                rule.priority = rule.priority || 1;\n                \n                // Add onSuccess handler for tracking\n                rule.onSuccess = function(event, almanac, ruleResult) {\n                    fireLog[rule.name] = {\n                        lastFired: Date.now(),\n                        event: event\n                    };\n                    global.set('ruleFireLog', fireLog);\n                };\n                \n                engine.addRule(rule);\n                ruleCount++;\n            } catch(e) {\n                errorCount++;\n                if (errorCount <= 3) node.warn('Rule \"' + (r.name||'?') + '\": ' + e.message);\n            }\n        });\n    }\n});\n\nif (errorCount > 3) node.warn('... and ' + (errorCount - 3) + ' more rule errors');\nif (ruleCount === 0 && groups.length > 0) node.warn('No valid rules loaded! Check rule format.');\n\nnode.status({ fill: 'green', shape: 'dot', text: ruleCount + ' rules loaded' });\n\nengine.run(msg.payload).then(results => {\n    results.events.forEach(e => { \n        node.send({ topic: e.type, payload: e.params }); \n    });\n    if (results.events.length > 0) {\n        node.status({ fill: 'blue', shape: 'dot', text: results.events.length + ' events fired' });\n    }\n}).catch(err => { node.error('Engine: ' + err.message); });\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 140,
+        "wires": [
+            [
+                "node_router"
+            ]
+        ]
+    },
+    {
+        "id": "node_router",
+        "type": "switch",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "Event Router",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "set_state",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "control_device",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "control_group",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 700,
+        "y": 140,
+        "wires": [
+            [
+                "node_state_mgr"
+            ],
+            [
+                "node_safety"
+            ],
+            [
+                "node_group_mgr"
+            ]
+        ]
+    },
+    {
+        "id": "node_state_mgr",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "State Manager",
+        "func": "const NodeCache = global.get('nodeCacheModule');\nconst stateRegistry = global.get('stateRegistry') || [];\nconst BMS = global.get('BMS');\n\nif (!global.get('myStateCache')) {\n    global.set('myStateCache', new NodeCache());\n}\nconst cache = global.get('myStateCache');\n\nconst stateId = msg.payload.id;\nconst def = stateRegistry.find(s => s.id === stateId);\n\nconst registryTTL = (def && def.ttl) ? def.ttl : 0;\nconst effectiveTTL = (msg.payload.ttl !== undefined) ? msg.payload.ttl : registryTTL;\n\nlet newValue;\n\nif (msg.payload.value_expr) {\n    const expr = msg.payload.value_expr;\n    const allFacts = BMS ? BMS.getValues() : {};\n    stateRegistry.forEach(s => {\n        const v = cache.get(s.id);\n        allFacts[s.id] = (v !== undefined) ? v : s.defaultValue;\n    });\n    \n    let baseValue = 0;\n    if (expr.fact) {\n        baseValue = allFacts[expr.fact];\n        if (baseValue === undefined) {\n            node.warn('value_expr: fact \"' + expr.fact + '\" not found, using 0');\n            baseValue = 0;\n        }\n    } else if (expr.value !== undefined) {\n        baseValue = expr.value;\n    }\n    \n    newValue = baseValue;\n    if (expr.add !== undefined) newValue = newValue + expr.add;\n    if (expr.subtract !== undefined) newValue = newValue - expr.subtract;\n    if (expr.multiply !== undefined) newValue = newValue * expr.multiply;\n    if (expr.divide !== undefined && expr.divide !== 0) newValue = newValue / expr.divide;\n    if (expr.min !== undefined && newValue < expr.min) newValue = expr.min;\n    if (expr.max !== undefined && newValue > expr.max) newValue = expr.max;\n    if (expr.round === true) newValue = Math.round(newValue);\n    else if (expr.round === 'floor') newValue = Math.floor(newValue);\n    else if (expr.round === 'ceil') newValue = Math.ceil(newValue);\n    \n} else if (msg.payload.value_from_fact) {\n    const factId = msg.payload.value_from_fact;\n    const allFacts = BMS ? BMS.getValues() : {};\n    stateRegistry.forEach(s => {\n        const v = cache.get(s.id);\n        allFacts[s.id] = (v !== undefined) ? v : s.defaultValue;\n    });\n    \n    if (allFacts[factId] !== undefined) {\n        newValue = allFacts[factId];\n    } else {\n        node.warn('value_from_fact: \"' + factId + '\" not found, ignoring set_state');\n        return null;\n    }\n} else {\n    newValue = msg.payload.value;\n}\n\ncache.set(stateId, newValue, effectiveTTL);\n\nconst ttlStr = effectiveTTL > 0 ? ' (TTL: ' + effectiveTTL + 's)' : '';\nnode.status({fill: 'green', shape: 'dot', text: stateId + ' = ' + newValue + ttlStr});\n\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_group_mgr",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "Group Resolver",
+        "func": "const tag = msg.payload.tag;\nconst metadata = global.get('bmsMetadata') || {};\nconst bacnetPoints = global.get('bacnetPoints') || {};\nconst virtualPoints = global.get('virtualPoints') || {};\n\nlet targetValue = msg.payload.value;\nlet sourceUnit = msg.payload.unit || null;  // ← NEW: explicit unit parameter\n\n// Resolve value_from_fact if specified\nif (msg.payload.value_from_fact) {\n    const factId = msg.payload.value_from_fact;\n    if (bacnetPoints[factId]) {\n        targetValue = bacnetPoints[factId].value;\n        if (!sourceUnit) sourceUnit = bacnetPoints[factId].units;  // Infer if not explicit\n    } else if (virtualPoints[factId]) {\n        targetValue = virtualPoints[factId].value;\n        if (!sourceUnit) sourceUnit = virtualPoints[factId].units;\n    } else {\n        const cache = global.get('myStateCache');\n        const stateRegistry = global.get('stateRegistry') || [];\n        const stateDef = stateRegistry.find(s => s.id === factId);\n        if (cache) {\n            targetValue = cache.get(factId);\n            if (targetValue === undefined && stateDef) {\n                targetValue = stateDef.defaultValue;\n            }\n        }\n    }\n}\n\n// Determine expected unit type for filtering\nlet expectedUnitType = null;\nif (sourceUnit) {\n    expectedUnitType = sourceUnit;\n} else if (typeof targetValue === 'boolean') {\n    expectedUnitType = 'bool';\n}\n\nlet matchCount = 0;\nlet skippedCount = 0;\n\nObject.entries(metadata).forEach(([id, meta]) => {\n    if (!meta.tags || !meta.tags.includes(tag)) return;\n    const point = bacnetPoints[id];\n    if (!point || point.access !== 'read_write') return;\n    \n    const pointUnit = point.units;\n    let compatible = true;\n    \n    // Unit compatibility check\n    if (expectedUnitType) {\n        compatible = (pointUnit === expectedUnitType);\n    } else if (typeof targetValue === 'boolean') {\n        compatible = (pointUnit === 'bool');\n    } else if (typeof targetValue === 'number' && pointUnit === 'bool') {\n        compatible = false;  // Don't send numbers to boolean actuators\n    }\n    \n    if (compatible) {\n        matchCount++;\n        node.send({\n            topic: 'control_device',\n            payload: { id: id, value: targetValue, _source: 'group_resolver', _tag: tag }\n        });\n    } else {\n        skippedCount++;\n    }\n});\n\n// Status reporting\nif (matchCount === 0 && skippedCount > 0) {\n    node.warn(`control_group tag=\"${tag}\": no compatible actuators (${skippedCount} skipped - unit mismatch with ${expectedUnitType || typeof targetValue})`);\n    node.status({ fill: 'yellow', shape: 'ring', text: `${tag}: 0 matched, ${skippedCount} skipped` });\n} else if (matchCount === 0) {\n    node.warn(`control_group tag=\"${tag}\": no actuators found with this tag`);\n    node.status({ fill: 'red', shape: 'ring', text: `${tag}: not found` });\n} else {\n    node.status({ fill: 'green', shape: 'dot', text: `${tag}: ${matchCount} updated` });\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 200,
+        "wires": [
+            [
+                "node_safety"
+            ]
+        ]
+    },
+    {
+        "id": "node_safety",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "Safety Guard",
+        "func": "const BMS = global.get('BMS');\nif (!BMS) return null;\n\nlet targetValue = msg.payload.value;\n\n// Resolve value_from_fact if specified\nif (msg.payload.value_from_fact) {\n    const factId = msg.payload.value_from_fact;\n    const allValues = BMS.getValues();\n    if (allValues[factId] !== undefined) {\n        targetValue = allValues[factId];\n    } else {\n        node.warn('value_from_fact \"' + factId + '\" not found, ignoring command');\n        return null;\n    }\n}\n\nconst success = BMS.writeValue(msg.payload.id, targetValue);\nif (success) {\n    node.status({ fill: 'green', shape: 'dot', text: msg.payload.id + ' = ' + targetValue });\n    return { payload: 'updated', id: msg.payload.id, value: targetValue };\n} else {\n    node.status({ fill: 'yellow', shape: 'ring', text: msg.payload.id + ' - write failed' });\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1150,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "node_dash_merge",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_dashboard",
+        "name": "Merge Config + Data",
+        "func": "const config = global.get('dashboardConfig') || { widgets: [] };\nconst BMS = global.get('BMS');\nconst cache = global.get('myStateCache');\nconst states = global.get('stateRegistry') || [];\nlet data = BMS ? BMS.getValues() : {};\nif (cache) { states.forEach(s => { let v = cache.get(s.id); data[s.id] = (v !== undefined) ? v : s.defaultValue; }); }\nmsg.ui_config = config;\nmsg.payload = data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 300,
+        "wires": [
+            [
+                "node_dash_render"
+            ]
+        ]
+    },
+    {
+        "id": "node_dash_render",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_dashboard",
+        "group": "grp_control_widgets",
+        "page": "",
+        "ui": "",
+        "name": "Dynamic Widget Renderer",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "format": "<template>\n    <div class=\"widget-container\">\n        <template v-if=\"widgets && widgets.length > 0\">\n            <template v-for=\"(w, idx) in widgets\" :key=\"idx\">\n                \n                <!-- GROUP -->\n                <v-card v-if=\"w.type === 'group'\" variant=\"outlined\" class=\"mb-3\">\n                    <v-expansion-panels variant=\"accordion\">\n                        <v-expansion-panel>\n                            <v-expansion-panel-title>\n                                <v-icon v-if=\"w.icon\" :icon=\"w.icon\" class=\"mr-2\" :color=\"w.color || 'primary'\"></v-icon>\n                                <span class=\"font-weight-bold\">{{ w.label }}</span>\n                            </v-expansion-panel-title>\n                            <v-expansion-panel-text>\n                                <template v-for=\"(c1, i1) in w.widgets\" :key=\"'g'+idx+'c'+i1\">\n                                    <div v-if=\"c1.type === 'section'\" class=\"mb-2\">\n                                        <div class=\"text-caption font-weight-bold mb-1\">{{ c1.label }}</div>\n                                        <div :class=\"c1.grid ? 'widget-grid' : ''\">\n                                            <template v-for=\"(c2, i2) in c1.widgets\" :key=\"'gs'+i1+'w'+i2\">\n                                                <div class=\"widget-card\">\n                                                    <div class=\"widget-label\">{{ c2.label }}</div>\n                                                    <div v-if=\"c2.type === 'text'\" class=\"widget-value\">{{ values[c2.bind] }}<span v-if=\"c2.unit\" class=\"widget-unit\">{{ c2.unit }}</span></div>\n                                                    <v-progress-linear v-else-if=\"c2.type === 'gauge'\" :model-value=\"getPercent(c2)\" :color=\"getGaugeColor(c2)\" height=\"18\" rounded><span class=\"text-caption\">{{ values[c2.bind] }} {{ c2.unit }}</span></v-progress-linear>\n                                                    <v-chip v-else-if=\"c2.type === 'status'\" :color=\"getStatusColor(c2)\" size=\"small\">{{ getStatusText(c2) }}</v-chip>\n                                                    <div v-else-if=\"c2.type === 'slider'\"><v-slider v-model=\"localValues[c2.bind]\" :min=\"c2.min||0\" :max=\"c2.max||100\" :step=\"c2.step||1\" thumb-label hide-details @end=\"sendUpdate(c2.bind, localValues[c2.bind])\"></v-slider><div class=\"text-right text-caption\">{{ localValues[c2.bind] }} {{ c2.unit }}</div></div>\n                                                    <v-switch v-else-if=\"c2.type === 'switch'\" v-model=\"localValues[c2.bind]\" :label=\"localValues[c2.bind] ? 'ON' : 'OFF'\" :color=\"c2.color||'success'\" hide-details @update:model-value=\"sendUpdate(c2.bind, $event)\"></v-switch>\n                                                    <v-btn v-else-if=\"c2.type === 'button'\" :color=\"c2.color||'primary'\" variant=\"tonal\" size=\"small\" :loading=\"btnLoading[c2.bind]\" @click=\"clickButton(c2)\"><v-icon v-if=\"c2.icon\" :icon=\"c2.icon\" size=\"small\" class=\"mr-1\"></v-icon>{{ c2.buttonLabel || c2.label }}</v-btn>\n                                                </div>\n                                            </template>\n                                        </div>\n                                    </div>\n                                    <div v-else class=\"widget-card\">\n                                        <div class=\"widget-label\">{{ c1.label }}</div>\n                                        <div v-if=\"c1.type === 'text'\" class=\"widget-value\">{{ values[c1.bind] }}<span v-if=\"c1.unit\" class=\"widget-unit\">{{ c1.unit }}</span></div>\n                                        <v-progress-linear v-else-if=\"c1.type === 'gauge'\" :model-value=\"getPercent(c1)\" :color=\"getGaugeColor(c1)\" height=\"18\" rounded><span class=\"text-caption\">{{ values[c1.bind] }} {{ c1.unit }}</span></v-progress-linear>\n                                        <v-chip v-else-if=\"c1.type === 'status'\" :color=\"getStatusColor(c1)\" size=\"small\">{{ getStatusText(c1) }}</v-chip>\n                                        <div v-else-if=\"c1.type === 'slider'\"><v-slider v-model=\"localValues[c1.bind]\" :min=\"c1.min||0\" :max=\"c1.max||100\" :step=\"c1.step||1\" thumb-label hide-details @end=\"sendUpdate(c1.bind, localValues[c1.bind])\"></v-slider><div class=\"text-right text-caption\">{{ localValues[c1.bind] }} {{ c1.unit }}</div></div>\n                                        <v-switch v-else-if=\"c1.type === 'switch'\" v-model=\"localValues[c1.bind]\" :label=\"localValues[c1.bind] ? 'ON' : 'OFF'\" :color=\"c1.color||'success'\" hide-details @update:model-value=\"sendUpdate(c1.bind, $event)\"></v-switch>\n                                        <v-btn v-else-if=\"c1.type === 'button'\" :color=\"c1.color||'primary'\" variant=\"tonal\" size=\"small\" :loading=\"btnLoading[c1.bind]\" @click=\"clickButton(c1)\"><v-icon v-if=\"c1.icon\" :icon=\"c1.icon\" size=\"small\" class=\"mr-1\"></v-icon>{{ c1.buttonLabel || c1.label }}</v-btn>\n                                    </div>\n                                </template>\n                            </v-expansion-panel-text>\n                        </v-expansion-panel>\n                    </v-expansion-panels>\n                </v-card>\n                \n                <!-- SECTION -->\n                <div v-else-if=\"w.type === 'section'\" class=\"mb-3\">\n                    <div class=\"d-flex align-center mb-2\">\n                        <v-icon v-if=\"w.icon\" :icon=\"w.icon\" class=\"mr-2\" :color=\"w.color || 'primary'\"></v-icon>\n                        <span class=\"text-subtitle-1 font-weight-bold\">{{ w.label }}</span>\n                        <v-divider class=\"ml-3\"></v-divider>\n                    </div>\n                    <div :class=\"w.grid ? 'widget-grid' : ''\">\n                        <template v-for=\"(c1, i1) in w.widgets\" :key=\"'s'+idx+'w'+i1\">\n                            <div class=\"widget-card\">\n                                <div class=\"widget-label\"><v-icon v-if=\"c1.icon\" :icon=\"c1.icon\" size=\"x-small\" class=\"mr-1\"></v-icon>{{ c1.label }}</div>\n                                <div v-if=\"c1.type === 'text'\" class=\"widget-value\">{{ values[c1.bind] }}<span v-if=\"c1.unit\" class=\"widget-unit\">{{ c1.unit }}</span></div>\n                                <v-progress-linear v-else-if=\"c1.type === 'gauge'\" :model-value=\"getPercent(c1)\" :color=\"getGaugeColor(c1)\" height=\"18\" rounded><span class=\"text-caption\">{{ values[c1.bind] }} {{ c1.unit }}</span></v-progress-linear>\n                                <v-chip v-else-if=\"c1.type === 'status'\" :color=\"getStatusColor(c1)\" size=\"small\"><v-icon v-if=\"getStatusIcon(c1)\" :icon=\"getStatusIcon(c1)\" size=\"x-small\" class=\"mr-1\"></v-icon>{{ getStatusText(c1) }}</v-chip>\n                                <div v-else-if=\"c1.type === 'slider'\"><v-slider v-model=\"localValues[c1.bind]\" :min=\"c1.min||0\" :max=\"c1.max||100\" :step=\"c1.step||1\" thumb-label hide-details @end=\"sendUpdate(c1.bind, localValues[c1.bind])\"></v-slider><div class=\"text-right text-caption\">{{ localValues[c1.bind] }} {{ c1.unit }}</div></div>\n                                <v-switch v-else-if=\"c1.type === 'switch'\" v-model=\"localValues[c1.bind]\" :label=\"localValues[c1.bind] ? 'ON' : 'OFF'\" :color=\"c1.color||'success'\" hide-details @update:model-value=\"sendUpdate(c1.bind, $event)\"></v-switch>\n                                <v-btn v-else-if=\"c1.type === 'button'\" :color=\"c1.color||'primary'\" variant=\"tonal\" size=\"small\" :loading=\"btnLoading[c1.bind]\" @click=\"clickButton(c1)\"><v-icon v-if=\"c1.icon\" :icon=\"c1.icon\" size=\"small\" class=\"mr-1\"></v-icon>{{ c1.buttonLabel || c1.label }}</v-btn>\n                            </div>\n                        </template>\n                    </div>\n                </div>\n                \n                <!-- BASIC WIDGETS -->\n                <div v-else class=\"widget-card mb-2\">\n                    <div class=\"widget-label\"><v-icon v-if=\"w.icon\" :icon=\"w.icon\" size=\"x-small\" class=\"mr-1\"></v-icon>{{ w.label }}</div>\n                    <div v-if=\"w.type === 'text'\" class=\"widget-value\">{{ w.map ? (w.map[String(values[w.bind])] || values[w.bind]) : values[w.bind] }}<span v-if=\"w.unit\" class=\"widget-unit\">{{ w.unit }}</span></div>\n                    <v-progress-linear v-else-if=\"w.type === 'gauge'\" :model-value=\"getPercent(w)\" :color=\"getGaugeColor(w)\" height=\"18\" rounded><span class=\"text-caption\">{{ values[w.bind] }} {{ w.unit }}</span></v-progress-linear>\n                    <v-chip v-else-if=\"w.type === 'status'\" :color=\"getStatusColor(w)\" size=\"small\"><v-icon v-if=\"getStatusIcon(w)\" :icon=\"getStatusIcon(w)\" size=\"x-small\" class=\"mr-1\"></v-icon>{{ getStatusText(w) }}</v-chip>\n                    <div v-else-if=\"w.type === 'slider'\"><v-slider v-model=\"localValues[w.bind]\" :min=\"w.min||0\" :max=\"w.max||100\" :step=\"w.step||1\" thumb-label hide-details @end=\"sendUpdate(w.bind, localValues[w.bind])\"></v-slider><div class=\"text-right text-caption\">{{ localValues[w.bind] }} {{ w.unit }}</div></div>\n                    <v-switch v-else-if=\"w.type === 'switch'\" v-model=\"localValues[w.bind]\" :label=\"localValues[w.bind] ? 'ON' : 'OFF'\" :color=\"w.color||'success'\" hide-details @update:model-value=\"sendUpdate(w.bind, $event)\"></v-switch>\n                    <v-btn v-else-if=\"w.type === 'button'\" :color=\"w.color||'primary'\" variant=\"tonal\" size=\"small\" :loading=\"btnLoading[w.bind]\" @click=\"clickButton(w)\"><v-icon v-if=\"w.icon\" :icon=\"w.icon\" size=\"small\" class=\"mr-1\"></v-icon>{{ w.buttonLabel || w.label }}</v-btn>\n                </div>\n                \n            </template>\n        </template>\n        <v-alert v-else type=\"info\" variant=\"tonal\">No Widgets Configured</v-alert>\n    </div>\n</template>\n\n<style scoped>\n.widget-container { padding: 8px; }\n.widget-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }\n.widget-card { background: #f5f5f5; border-radius: 8px; padding: 12px; margin-bottom: 8px; }\n.widget-label { font-size: 12px; color: #666; margin-bottom: 4px; }\n.widget-value { font-size: 20px; font-weight: 500; }\n.widget-unit { font-size: 12px; color: #888; margin-left: 4px; }\n</style>\n\n<script>\nexport default {\n    data() { return { widgets: [], values: {}, localValues: {}, editing: null, btnLoading: {} } },\n    watch: { \n        msg: { \n            handler(m) { \n                if (m) { \n                    if (m.ui_config && m.ui_config.widgets) this.widgets = m.ui_config.widgets;\n                    if (m.payload) { this.values = m.payload; this.syncLocal(this.widgets); } \n                } \n            }, \n            deep: true, immediate: true \n        } \n    },\n    methods: { \n        syncLocal(list) {\n            if (!list) return;\n            list.forEach(w => {\n                if (w.widgets) this.syncLocal(w.widgets);\n                else if (w.bind && this.editing !== w.bind) this.localValues[w.bind] = this.values[w.bind];\n            });\n        },\n        sendUpdate(id, val) { this.editing = null; this.send({ topic: 'control', payload: { id: id, value: val } }); },\n        clickButton(w) {\n            this.btnLoading[w.bind] = true;\n            this.sendUpdate(w.bind, w.value !== undefined ? w.value : true);\n            setTimeout(() => { this.btnLoading[w.bind] = false; }, 500);\n        },\n        getPercent(w) {\n            const val = this.values[w.bind] || 0, min = w.min || 0, max = w.max || 100;\n            return Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));\n        },\n        getGaugeColor(w) {\n            const val = this.values[w.bind];\n            if (w.thresholds) { for (const t of w.thresholds) { if (val <= t.value) return t.color; } }\n            return w.color || 'primary';\n        },\n        getStatusColor(w) {\n            const val = this.values[w.bind];\n            if (w.states && w.states[String(val)]) return w.states[String(val)].color || 'grey';\n            return val ? (w.trueColor || 'success') : (w.falseColor || 'grey');\n        },\n        getStatusIcon(w) {\n            const val = this.values[w.bind];\n            if (w.states && w.states[String(val)]) return w.states[String(val)].icon;\n            return val ? w.trueIcon : w.falseIcon;\n        },\n        getStatusText(w) {\n            const val = this.values[w.bind];\n            if (w.states && w.states[String(val)]) return w.states[String(val)].text || val;\n            return val ? (w.trueText || 'ON') : (w.falseText || 'OFF');\n        }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 880,
+        "y": 300,
+        "wires": [
+            [
+                "node_dash_filter"
+            ]
+        ]
+    },
+    {
+        "id": "node_dash_filter",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_dashboard",
+        "name": "Filter User Input",
+        "func": "// Debug: log incoming message\nnode.warn(\"Dashboard input: \" + JSON.stringify(msg));\n\nif (msg.topic === 'control') {\n    const id = msg.payload.id;\n    const value = msg.payload.value;\n\n    node.warn(\"Control request: id=\" + id + \", value=\" + value);\n\n    // Check if this is a soft state (starts with 'st_')\n    if (id && id.startsWith('st_')) {\n        node.warn(\"Routing to STATE MANAGER: \" + id);\n        return [null, {\n            topic: 'set_state',\n            payload: { id: id, value: value }\n        }];\n    }\n\n    // Route to safety guard (hardware)\n    node.warn(\"Routing to SAFETY GUARD: \" + id);\n    return [{\n        payload: { id: id, value: value }\n    }, null];\n}\n\nreturn [null, null];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1100,
+        "y": 300,
+        "wires": [
+            [
+                "node_safety"
+            ],
+            [
+                "node_state_mgr"
+            ]
+        ]
+    },
+    {
+        "id": "env_tick",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_env_data",
+        "name": "Every 1 min",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 820,
+        "wires": [
+            [
+                "env_sun_calc",
+                "env_time_update"
+            ]
+        ]
+    },
+    {
+        "id": "env_sun_calc",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_env_data",
+        "name": "Calculate Sun",
+        "func": "const SunCalc = global.get('suncalcModule');\nconst BMS = global.get('BMS');\nconst vp = global.get('virtualPoints') || {};\nconst lat = vp['loc_latitude']?.value || 48.8566;\nconst lon = vp['loc_longitude']?.value || 2.3522;\nif (!SunCalc) return null;\nconst now = new Date();\nconst times = SunCalc.getTimes(now, lat, lon);\nconst toMin = d => d.getHours() * 60 + d.getMinutes();\nconst sr = toMin(times.sunrise), ss = toMin(times.sunset);\nconst day = now >= times.sunrise && now <= times.sunset;\nif (BMS) { BMS.setVirtualValue('sun_sunrise_minutes', sr); BMS.setVirtualValue('sun_sunset_minutes', ss); BMS.setVirtualValue('sun_is_daylight', day); }\nglobal.set('buildingLocation', { latitude: lat, longitude: lon });\nconst fmt = d => d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});\nnode.status({fill: day ? 'yellow' : 'blue', shape: 'dot', text: '☀ ' + fmt(times.sunrise) + ' | 🌙 ' + fmt(times.sunset) + ' @ ' + lat.toFixed(2) + ',' + lon.toFixed(2)});\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 800,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "env_time_update",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_env_data",
+        "name": "Update Time",
+        "func": "const BMS = global.get('BMS');\nconst now = new Date();\nconst h = now.getHours(), d = now.getDay() === 0 ? 7 : now.getDay();\nconst m = h * 60 + now.getMinutes();\nif (BMS) { BMS.setVirtualValue('glob_time_hour', h); BMS.setVirtualValue('glob_time_day', d); BMS.setVirtualValue('glob_time_minutes', m); }\nnode.status({fill: 'green', shape: 'dot', text: h + ':' + now.getMinutes().toString().padStart(2,'0') + ' Day ' + d});\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ai_gen_btn",
+        "type": "ui-button",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "group": "grp_ai_prompt",
+        "name": "Generate Prompt",
+        "label": "🔄 Generate Prompt",
+        "order": 1,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "mdi-robot",
+        "iconPosition": "left",
+        "payload": "trigger",
+        "payloadType": "str",
+        "topic": "generate",
+        "topicType": "str",
+        "x": 130,
+        "y": 460,
+        "wires": [
+            [
+                "ai_gen_func"
+            ]
+        ]
+    },
+    {
+        "id": "ai_gen_func",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "name": "Build AI Prompt (Interactive)",
+        "func": "const states = global.get('stateRegistry') || [];\nconst groups = global.get('ruleGroups') || [];\nconst agents = global.get('behaviorAgents') || [];\nconst ui = global.get('dashboardConfig') || {};\nconst virtualPoints = global.get('virtualPoints') || {};\nconst bacnetPoints = global.get('bacnetPoints') || {};\nconst bmsMetadata = global.get('bmsMetadata') || {};\n\n// Collect all tags\nconst allTags = new Set();\nconst tagCounts = {};\nObject.values(bmsMetadata).forEach(m => {\n    if (m.tags) m.tags.forEach(t => {\n        allTags.add(t);\n        tagCounts[t] = (tagCounts[t] || 0) + 1;\n    });\n});\n\n// Categorize points\nconst sensors = [], actuators = [], weather = [];\nObject.entries(bacnetPoints).forEach(([id, p]) => {\n    const meta = bmsMetadata[id] || { tags: [] };\n    const tags = meta.tags && meta.tags.length > 0 ? ` [${meta.tags.join(', ')}]` : '';\n    const range = (p.min !== undefined && p.max !== undefined) ? ` {${p.min}-${p.max}}` : '';\n    const entry = `- ${id}: ${p.objectName} (${p.units})${range}${tags}`;\n    if (id.startsWith('glob_outside')) weather.push(entry);\n    else if (p.access === 'read_only') sensors.push(entry);\n    else actuators.push(entry);\n});\n\nconst timePoints = [], sunPoints = [], locationPoints = [], configPoints = [];\nObject.entries(virtualPoints).forEach(([id, p]) => {\n    const rw = p.writable ? ', WRITABLE' : '';\n    const range = (p.min !== undefined && p.max !== undefined) ? ` {${p.min}-${p.max}}` : '';\n    const entry = `- ${id} = ${p.value} (${p.name}${rw})${range}`;\n    if (id.startsWith('glob_time')) timePoints.push(entry);\n    else if (id.startsWith('sun_')) sunPoints.push(entry);\n    else if (id.startsWith('loc_')) locationPoints.push(entry);\n    else configPoints.push(entry);\n});\n\n// Build current state - OUTPUT EXACT JSON\nlet currentLogicJSON = '';\nconst hasExistingLogic = agents.length > 0 || groups.length > 0 || states.length > 0;\n\nif (hasExistingLogic) {\n    const currentConfig = {};\n    \n    if (agents.length > 0) {\n        currentConfig.behavior_agents = agents;\n    }\n    \n    if (states.length > 0) {\n        currentConfig.defined_states = states;\n    }\n    \n    if (groups.length > 0) {\n        currentConfig.rule_groups = groups;\n    }\n    \n    currentLogicJSON = '### Current Configuration (exact JSON)\\n```json\\n' + JSON.stringify(currentConfig, null, 2) + '\\n```\\n';\n} else {\n    currentLogicJSON = '_No automation logic configured yet._\\n';\n}\n\n// Dashboard - OUTPUT EXACT JSON\nlet dashboardJSON = '### Current Dashboard (exact JSON)\\n';\nif (ui.widgets && ui.widgets.length > 0) {\n    dashboardJSON += '```json\\n' + JSON.stringify({ dashboard: ui }, null, 2) + '\\n```\\n';\n} else {\n    dashboardJSON += '_No widgets configured_\\n';\n}\n\nconst tagList = [...allTags].sort().map(t => `\\`${t}\\` (${tagCounts[t]})`).join(', ');\n\n// Build the comprehensive system prompt\nconst systemPrompt = `You are a BMS automation expert. We want to generate JSON configurations for automation rules.\n\n# INTERACTION RULES (CRITICAL)\n1. When no rules exist: Have a friendly conversation. Ask what automations they want (lighting? climate? schedules?). Suggest 2-3 common scenarios briefly.\n2. When rules exist: Summarize current logic in plain English, then ask what to change.\n3. Keep responses concise and conversational - no JSON structures, no machine-formatted summaries.\n4. Only output the final JSON block (updated rules_groups, states and dashboard) when user confirms they're ready.\n\n# OUTPUT FORMAT (Single JSON Object)\n\\`\\`\\`json\n{\n  \"behavior_agents\": [...],\n  \"defined_states\": [...],\n  \"rule_groups\": [...],\n  \"dashboard\": { \"widgets\": [...] }\n}\n\\`\\`\\`\n---\n# SCHEMA REFERENCE\n## behavior_agents (REQUIRED FIELDS)\n\\`\\`\\`json\n{\n  \"id\": \"agent_xxx\",           // Required: unique identifier\n  \"name\": \"Human Name\",        // Required: display name\n  \"description\": \"What it does\", // Required: explain the agent's purpose\n  \"category\": \"lighting|climate|security|energy|safety\", // Required: for UI icons\n  \"enabled\": true,             // Required: active flag\n  \"rule_group\": \"rg_xxx\"       // Required: link to rule_group id\n}\n\\`\\`\\`\n## defined_states (REQUIRED FIELDS)\n\\`\\`\\`json\n{\n  \"id\": \"st_xxx\",              // Required: unique identifier (prefix with st_)\n  \"name\": \"Human Name\",        // Required: display name for Live States UI\n  \"type\": \"number|boolean\",    // Required: data type\n  \"defaultValue\": 0,           // Required: initial/reset value\n  \"description\": \"What it tracks\" // Required: explain purpose\n}\n\\`\\`\\`\n## rule_groups\n\\`\\`\\`json\n{\n  \"id\": \"rg_xxx\",\n  \"name\": \"Group Name\",\n  \"rules\": [...]\n}\n\\`\\`\\`\n## rules - Standard Operators\n- \\`equal\\`, \\`notEqual\\`, \\`lessThan\\`, \\`lessThanInclusive\\`, \\`greaterThan\\`, \\`greaterThanInclusive\\`\n- \\`in\\`, \\`notIn\\` (for arrays)\n## rules - Fact-to-Fact Comparison Operators\n- \\`lessThanFact\\`: compare fact value < another fact's value\n- \\`greaterThanFact\\`: compare fact value > another fact's value  \n- \\`equalFact\\`: compare fact value === another fact's value\n## rules - Event Types\n1. **control_device**: Direct actuator control\n   \\`{ \"type\": \"control_device\", \"params\": { \"id\": \"actuator_id\", \"value\": 21 } }\\`\n   \\`{ \"type\": \"control_device\", \"params\": { \"id\": \"actuator_id\", \"value_from_fact\": \"glob_comfort_sp\" } }\\`\n\n2. **control_group**: Control all actuators with a tag (unit-aware and actuator only filtering).\n   With value_from_fact (unit auto-inferred from source):\n   \\`{ \"type\": \"control_group\", \"params\": { \"tag\": \"floor1\", \"value_from_fact\": \"glob_comfort_sp\" } }\\`\n   With explicit unit filter:\n   \\`{ \"type\": \"control_group\", \"params\": { \"tag\": \"floor1\", \"value\": 21, \"unit\": \"°C\" } }\\`\n   \\`{ \"type\": \"control_group\", \"params\": { \"tag\": \"floor1\", \"value\": 50, \"unit\": \"%\" } }\\`\n   Boolean (auto-filters to bool actuators):\n   \\`{ \"type\": \"control_group\", \"params\": { \"tag\": \"lighting\", \"value\": false } }\\`\n3. **set_state**: Update soft state memory\n   \\`{ \"type\": \"set_state\", \"params\": { \"id\": \"st_xxx\", \"value\": 1 } }\\`\n   \\`{ \"type\": \"set_state\", \"params\": { \"id\": \"st_xxx\", \"value_from_fact\": \"glob_comfort_sp\" } }\\`\n   \\`{ \"type\": \"set_state\", \"params\": { \"id\": \"st_xxx\", \"value_expr\": { \"fact\": \"glob_time_minute_of_week\", \"add\": 10 } } }\\`\n## value_expr Arithmetic\n\\`\\`\\`json\n{\n  \"value_expr\": {\n    \"fact\": \"source_fact_id\",  // Base value from fact\n    \"add\": 10,                 // Optional: add\n    \"subtract\": 5,             // Optional: subtract  \n    \"multiply\": 2,             // Optional: multiply\n    \"divide\": 2,               // Optional: divide\n    \"min\": 0,                  // Optional: floor\n    \"max\": 100,                // Optional: ceiling\n    \"round\": true              // Optional: true|\"floor\"|\"ceil\"\n  }\n}\n\\`\\`\\`\n## dashboard - Widget Types\nThe dashboard displays live values and controls. Widgets can be grouped.\n### Grouping Widgets\n**group** - Collapsible section (click to expand/collapse)\n\\`\\`\\`json\n{\n  \"type\": \"group\",\n  \"id\": \"grp_climate\",           // Required: unique ID for state tracking\n  \"label\": \"Climate Control\",    // Required: section title\n  \"icon\": \"mdi-thermometer\",     // Optional: MDI icon\n  \"color\": \"orange\",             // Optional: icon/header color\n  \"badge\": \"3 zones\",            // Optional: info badge\n  \"widgets\": [...]               // Required: nested widgets\n}\n\\`\\`\\`\n**section** - Non-collapsible header with optional grid layout\n\\`\\`\\`json\n{\n  \"type\": \"section\",\n  \"label\": \"Floor 1 Sensors\",\n  \"icon\": \"mdi-gauge\",\n  \"grid\": true,                  // Optional: arrange children in grid\n  \"widgets\": [...]\n}\n\\`\\`\\`\n### Display Widgets\n**text** - Read-only value display\n\\`\\`\\`json\n{\n  \"type\": \"text\",\n  \"label\": \"Temperature\",\n  \"bind\": \"f1_lobby_temp\",\n  \"unit\": \"°C\",\n  \"decimals\": 1,                 // Optional: decimal places\n  \"icon\": \"mdi-thermometer\",     // Optional: prefix icon\n  \"map\": { \"true\": \"YES\", \"false\": \"NO\" }  // Optional: value mapping\n}\n\\`\\`\\`\n**gauge** - Progress bar with thresholds\n\\`\\`\\`json\n{\n  \"type\": \"gauge\",\n  \"label\": \"CO2 Level\",\n  \"bind\": \"f1_lobby_co2\",\n  \"min\": 400,\n  \"max\": 2000,\n  \"unit\": \"ppm\",\n  \"thresholds\": [                // Optional: color breakpoints\n    { \"value\": 800, \"color\": \"green\" },\n    { \"value\": 1200, \"color\": \"orange\" },\n    { \"value\": 2000, \"color\": \"red\" }\n  ]\n}\n\\`\\`\\`\n**status** - Colored indicator chip\n\\`\\`\\`json\n{\n  \"type\": \"status\",\n  \"label\": \"Occupancy\",\n  \"bind\": \"st_lobby_occupied\",\n  \"trueColor\": \"success\",\n  \"falseColor\": \"grey\",\n  \"trueText\": \"OCCUPIED\",\n  \"falseText\": \"VACANT\",\n  \"trueIcon\": \"mdi-account\",\n  \"falseIcon\": \"mdi-account-off\"\n}\n\\`\\`\\`\nFor multi-state values:\n\\`\\`\\`json\n{\n  \"type\": \"status\",\n  \"label\": \"HVAC Mode\",\n  \"bind\": \"st_hvac_mode\",\n  \"states\": {\n    \"0\": { \"text\": \"OFF\", \"color\": \"grey\", \"icon\": \"mdi-power-off\" },\n    \"1\": { \"text\": \"ECO\", \"color\": \"green\", \"icon\": \"mdi-leaf\" },\n    \"2\": { \"text\": \"COMFORT\", \"color\": \"orange\", \"icon\": \"mdi-sofa\" },\n    \"3\": { \"text\": \"BOOST\", \"color\": \"red\", \"icon\": \"mdi-fire\" }\n  }\n}\n\\`\\`\\`\n### Control Widgets\n**slider** - Numeric control\n\\`\\`\\`json\n{\n  \"type\": \"slider\",\n  \"label\": \"Setpoint\",\n  \"bind\": \"f1_lobby_temp_setpoint\",\n  \"min\": 15,\n  \"max\": 28,\n  \"step\": 0.5,\n  \"unit\": \"°C\"\n}\n\\`\\`\\`\n**switch** - Boolean toggle\n\\`\\`\\`json\n{\n  \"type\": \"switch\",\n  \"label\": \"Lobby Lamp\",\n  \"bind\": \"f1_lobby_lamp\",\n  \"onLabel\": \"ON\",               // Optional: custom labels\n  \"offLabel\": \"OFF\",\n  \"color\": \"amber\"               // Optional: switch color\n}\n\\`\\`\\`\n**button** - Action trigger (sets a value when clicked)\n\\`\\`\\`json\n{\n  \"type\": \"button\",\n  \"label\": \"Emergency\",\n  \"bind\": \"st_emergency_mode\",\n  \"value\": true,                 // Value to set on click\n  \"buttonLabel\": \"ACTIVATE\",     // Optional: button text\n  \"icon\": \"mdi-alert\",\n  \"color\": \"red\"\n}\n\\`\\`\\`\n**select** - Dropdown selection\n\\`\\`\\`json\n{\n  \"type\": \"select\",\n  \"label\": \"Operating Mode\",\n  \"bind\": \"st_operating_mode\",\n  \"options\": [\n    { \"label\": \"Auto\", \"value\": 0 },\n    { \"label\": \"Manual\", \"value\": 1 },\n    { \"label\": \"Away\", \"value\": 2 }\n  ]\n}\n\\`\\`\\`\n### Complete Dashboard Example\n\\`\\`\\`json\n{\n  \"dashboard\": {\n    \"widgets\": [\n      {\n        \"type\": \"section\",\n        \"label\": \"Global Status\",\n        \"icon\": \"mdi-earth\",\n        \"grid\": true,\n        \"widgets\": [\n          { \"type\": \"text\", \"label\": \"Outside\", \"bind\": \"glob_outside_temp\", \"unit\": \"°C\", \"icon\": \"mdi-weather-partly-cloudy\" },\n          { \"type\": \"gauge\", \"label\": \"Daylight\", \"bind\": \"glob_outside_lux\", \"min\": 0, \"max\": 50000, \"unit\": \"lux\" }\n        ]\n      },\n      {\n        \"type\": \"group\",\n        \"id\": \"grp_lobby\",\n        \"label\": \"Lobby\",\n        \"icon\": \"mdi-door\",\n        \"color\": \"blue\",\n        \"widgets\": [\n          { \"type\": \"status\", \"label\": \"Presence\", \"bind\": \"f1_lobby_motion\", \"trueText\": \"MOTION\", \"falseText\": \"CLEAR\" },\n          { \"type\": \"gauge\", \"label\": \"CO2\", \"bind\": \"f1_lobby_co2\", \"min\": 400, \"max\": 2000, \"unit\": \"ppm\", \n            \"thresholds\": [{\"value\": 800, \"color\": \"green\"}, {\"value\": 1200, \"color\": \"orange\"}, {\"value\": 2000, \"color\": \"red\"}] },\n          { \"type\": \"slider\", \"label\": \"Temperature Setpoint\", \"bind\": \"f1_lobby_temp_setpoint\", \"min\": 15, \"max\": 28, \"unit\": \"°C\" },\n          { \"type\": \"switch\", \"label\": \"Lights\", \"bind\": \"f1_lobby_lamp\" }\n        ]\n      }\n    ]\n  }\n}\n\\`\\`\\`\n---\n# ⚠️ CRITICAL PATTERNS & ANTI-PATTERNS\n## ✅ CORRECT: Multi-Stage Control with Hysteresis\nWhen implementing staged control (e.g., CO2 ventilation with 3 stages), ALWAYS check current stage before transitioning:\n\\`\\`\\`json\n// Stage escalation: 0/1 -> 2 (when CO2 > 1200 AND not already at stage 2)\n{\n  \"name\": \"CO2 stage 0/1->2 (>1200)\",\n  \"conditions\": { \"all\": [\n    { \"fact\": \"room_co2\", \"operator\": \"greaterThan\", \"value\": 1200 },\n    { \"fact\": \"st_room_co2_stage\", \"operator\": \"lessThanInclusive\", \"value\": 1 }  // ← CRITICAL CHECK\n  ]},\n  \"event\": { \"type\": \"set_state\", \"params\": { \"id\": \"st_room_co2_stage\", \"value\": 2 } }\n}\n// Stage escalation: 0 -> 1 (when CO2 > 900 AND currently at stage 0)\n{\n  \"name\": \"CO2 stage 0->1 (>900)\",\n  \"conditions\": { \"all\": [\n    { \"fact\": \"room_co2\", \"operator\": \"greaterThan\", \"value\": 900 },\n    { \"fact\": \"st_room_co2_stage\", \"operator\": \"equal\", \"value\": 0 }  // ← CRITICAL CHECK\n  ]},\n  \"event\": { \"type\": \"set_state\", \"params\": { \"id\": \"st_room_co2_stage\", \"value\": 1 } }\n}\n// Stage de-escalation: 2 -> 1 (when CO2 < 1100 AND currently at stage 2)\n{\n  \"name\": \"CO2 stage 2->1 (<1100)\",\n  \"conditions\": { \"all\": [\n    { \"fact\": \"st_room_co2_stage\", \"operator\": \"equal\", \"value\": 2 },  // ← CRITICAL CHECK\n    { \"fact\": \"room_co2\", \"operator\": \"lessThan\", \"value\": 1100 }\n  ]},\n  \"event\": { \"type\": \"set_state\", \"params\": { \"id\": \"st_room_co2_stage\", \"value\": 1 } }\n}\n\\`\\`\\`\n## ❌ WRONG: Missing Stage Check (causes rule to fire every second!)\n\\`\\`\\`json\n// BAD - Missing stage check, will fire repeatedly!\n{\n  \"name\": \"CO2 >1200 => stage 2\",\n  \"conditions\": { \"all\": [\n    { \"fact\": \"room_co2\", \"operator\": \"greaterThan\", \"value\": 1200 }\n    // Missing: { \"fact\": \"st_room_co2_stage\", \"operator\": \"lessThanInclusive\", \"value\": 1 }\n  ]},\n  \"event\": { \"type\": \"set_state\", \"params\": { \"id\": \"st_room_co2_stage\", \"value\": 2 } }\n}\n\\`\\`\\`\n## ✅ CORRECT: Timer Pattern with minute_of_week\n\\`\\`\\`json\n// Set timer: current minute + duration\n{\n  \"name\": \"Motion detected - reset timer (5 min)\",\n  \"conditions\": { \"all\": [{ \"fact\": \"room_motion\", \"operator\": \"equal\", \"value\": true }] },\n  \"event\": { \"type\": \"set_state\", \"params\": { \"id\": \"st_room_timer\", \"value_expr\": { \"fact\": \"glob_time_minute_of_week\", \"add\": 5 } } }\n}\n// Check timer expired\n{\n  \"name\": \"Timer expired - turn off\",\n  \"conditions\": { \"all\": [\n    { \"fact\": \"st_room_timer\", \"operator\": \"greaterThan\", \"value\": 0 },\n    { \"fact\": \"glob_time_minute_of_week\", \"operator\": \"greaterThanFact\", \"value\": \"st_room_timer\" }\n  ]},\n  \"event\": { \"type\": \"control_device\", \"params\": { \"id\": \"room_lamp\", \"value\": false } }\n}\n\\`\\`\\`\n## ✅ CORRECT: Business Hours Check\n\\`\\`\\`json\n// During business hours (Mon-Fri 08:00-19:00)\n{\n  \"conditions\": { \"all\": [\n    { \"fact\": \"glob_time_day\", \"operator\": \"in\", \"value\": [1, 2, 3, 4, 5] },\n    { \"fact\": \"glob_time_minutes\", \"operator\": \"greaterThanInclusive\", \"value\": 480 },\n    { \"fact\": \"glob_time_minutes\", \"operator\": \"lessThan\", \"value\": 1140 }\n  ]}\n}\n// Outside business hours (weekends OR before 08:00 OR after 19:00)\n{\n  \"conditions\": { \"all\": [\n    { \"any\": [\n      { \"fact\": \"glob_time_day\", \"operator\": \"notIn\", \"value\": [1, 2, 3, 4, 5] },\n      { \"fact\": \"glob_time_minutes\", \"operator\": \"lessThan\", \"value\": 480 },\n      { \"fact\": \"glob_time_minutes\", \"operator\": \"greaterThanInclusive\", \"value\": 1140 }\n    ]}\n  ]}\n}\n\\`\\`\\`\n---\n# AVAILABLE DATA POINTS\n## Tags: ${tagList || '_None_'}\n## Sensors\n${sensors.join('\\n') || '_None_'}\n## Actuators\n${actuators.join('\\n') || '_None_'}\n## Weather\n${weather.join('\\n') || '_None_'}\n## Time Facts\n${timePoints.join('\\n') || '_None_'}\n## Sun Position\n${sunPoints.join('\\n') || '_None_'}\n## Global Setpoints\n${configPoints.join('\\n') || '_None_'}\n---\n# CURRENT SYSTEM STATE\n${currentLogicJSON}\n${dashboardJSON}\n---\n# ✅ CHECKLIST BEFORE GENERATING JSON\n1. ☐ All behavior_agents have: id, name, description, category, enabled, rule_group\n2. ☐ All defined_states have: id, name, type, defaultValue, description\n3. ☐ Multi-stage rules ALWAYS check current stage before transitioning\n4. ☐ Timer rules use glob_time_minute_of_week with value_expr for setting\n5. ☐ Hysteresis thresholds have gaps (e.g., up at 1200, down at 1100)\n6. ☐ Rule priorities: higher = executes first (100 > 50 > 10)\n7. ☐ Dashboard widgets have correct type, label, bind, and min/max for sliders\n`;\n\nmsg.payload = systemPrompt;\nmsg.topic = 'prompt_generated';\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 460,
+        "wires": [
+            [
+                "ai_prompt_template"
+            ]
+        ]
+    },
+    {
+        "id": "ai_prompt_template",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "group": "grp_ai_prompt",
+        "name": "Prompt Display",
+        "order": 2,
+        "width": "9",
+        "height": "5",
+        "format": "<template>\n    <div style=\"height: 100%; display: flex; flex-direction: column;\">\n        <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;\">\n            <span class=\"text-caption\">Copy to AI chat:</span>\n            <v-btn color=\"primary\" size=\"small\" @click=\"copyPrompt\">{{ copyLabel }}</v-btn>\n        </div>\n        <v-textarea v-model=\"prompt\" readonly variant=\"outlined\" density=\"compact\" rows=\"8\" style=\"font-family: monospace; font-size: 10px;\"></v-textarea>\n    </div>\n</template>\n<script>\nexport default {\n    data() { return { prompt: 'Click Generate Prompt...', copyLabel: 'Copy' } },\n    watch: { msg(m) { if (m && typeof m.payload === 'string') this.prompt = m.payload; } },\n    methods: { copyPrompt() { navigator.clipboard.writeText(this.prompt); this.copyLabel = '✓ Copied'; setTimeout(() => this.copyLabel = 'Copy', 2000); } }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 580,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ai_import_template",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "group": "grp_ai_import",
+        "name": "Import Panel",
+        "order": 1,
+        "width": "12",
+        "height": "5",
+        "format": "<template>\n    <div style=\"height: 100%; display: flex; flex-direction: column;\">\n        <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;\">\n            <span class=\"font-weight-bold\">Paste AI JSON:</span>\n            <v-btn color=\"success\" @click=\"applyConfig\" :disabled=\"!jsonInput.trim()\">APPLY</v-btn>\n        </div>\n        <v-textarea v-model=\"jsonInput\" placeholder=\"Paste JSON from AI here...\" variant=\"outlined\" density=\"compact\" rows=\"8\" style=\"font-family: monospace; font-size: 11px;\"></v-textarea>\n    </div>\n</template>\n<script>\nexport default {\n    data() { return { jsonInput: '' } },\n    methods: { applyConfig() { if (this.jsonInput.trim()) { this.send({ payload: this.jsonInput, topic: 'import' }); } } }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 140,
+        "y": 560,
+        "wires": [
+            [
+                "ai_parse"
+            ]
+        ]
+    },
+    {
+        "id": "ai_parse",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "name": "Parse & Apply",
+        "func": "let input = (msg.payload || '').toString();\n\nlet cleanedInput = input\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\/\\/[^\\n]*/g, '')\n    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')\n    .replace(/,(\\s*[}\\]])/g, '$1')\n    .replace(/[\\u00A0\\u201C\\u201D\\u2018\\u2019]/g, ' ')\n    .trim();\n\nlet jsonString = '';\nconst match = cleanedInput.match(/```(?:json)?([\\s\\S]*?)```/);\nif (match) jsonString = match[1].trim();\nelse if (cleanedInput.startsWith('{')) jsonString = cleanedInput;\nelse { \n    const f = cleanedInput.indexOf('{'); \n    const l = cleanedInput.lastIndexOf('}'); \n    if (f !== -1 && l > f) jsonString = cleanedInput.substring(f, l + 1); \n}\n\ntry {\n    if (!jsonString) throw new Error('No JSON found');\n    const cfg = JSON.parse(jsonString);\n    const info = [];\n    \n    if (cfg.behavior_agents) { \n        global.set('behaviorAgents', cfg.behavior_agents); \n        info.push(cfg.behavior_agents.length + ' agents'); \n    }\n    \n    if (cfg.rule_groups) {\n        global.set('ruleGroups', cfg.rule_groups);\n        let ruleCount = cfg.rule_groups.reduce((s, g) => s + (g.rules || []).length, 0);\n        info.push(cfg.rule_groups.length + ' groups (' + ruleCount + ' rules)');\n    }\n    \n    if (cfg.defined_states) { \n        global.set('stateRegistry', cfg.defined_states); \n        info.push(cfg.defined_states.length + ' states'); \n    }\n    \n    if (cfg.dashboard) { \n        global.set('dashboardConfig', cfg.dashboard); \n        info.push((cfg.dashboard.widgets || []).length + ' widgets'); \n    }\n    \n    node.warn('✓ Applied: ' + info.join(', '));\n    return [{ payload: '✅ ' + info.join(', ') }, { payload: 'refresh' }];\n} catch (e) {\n    node.error('Parse error: ' + e.message);\n    return [{ payload: '❌ ' + e.message }, null];\n}",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 560,
+        "wires": [
+            [
+                "ai_feedback"
+            ],
+            [
+                "node_dash_merge",
+                "logic_inspect_func"
+            ]
+        ]
+    },
+    {
+        "id": "ai_feedback",
+        "type": "ui-notification",
+        "z": "tab_bms_v9",
+        "g": "grp_ai_config",
+        "ui": "conf_ui_base",
+        "position": "top right",
+        "displayTime": "3000",
+        "outputs": 1,
+        "raw": false,
+        "className": "",
+        "name": "Toast",
+        "x": 570,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "logic_inspect_btn",
+        "type": "ui-button",
+        "z": "tab_bms_v9",
+        "g": "grp_behavior_ui",
+        "group": "grp_logic_view",
+        "name": "Refresh",
+        "label": "Refresh",
+        "order": 1,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "mdi-refresh",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "date",
+        "topic": "",
+        "topicType": "str",
+        "x": 120,
+        "y": 700,
+        "wires": [
+            [
+                "logic_inspect_func"
+            ]
+        ]
+    },
+    {
+        "id": "logic_auto_refresh",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_behavior_ui",
+        "name": "Auto",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 3,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 660,
+        "wires": [
+            [
+                "logic_inspect_func"
+            ]
+        ]
+    },
+    {
+        "id": "logic_inspect_func",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_behavior_ui",
+        "name": "Build View",
+        "func": "const agents = global.get('behaviorAgents') || [];\nconst groups = global.get('ruleGroups') || [];\nconst states = global.get('stateRegistry') || [];\nconst cache = global.get('myStateCache');\nconst fireLog = global.get('ruleFireLog') || {};\n\nconst agentView = agents.map(a => {\n    let ag = [];\n    \n    // Method 1: agent.rule_group_ids (array)\n    if (a.rule_group_ids && Array.isArray(a.rule_group_ids)) {\n        ag = groups.filter(g => a.rule_group_ids.includes(g.id));\n    }\n    // Method 2: agent.rule_group (singular string)\n    else if (a.rule_group && typeof a.rule_group === 'string') {\n        ag = groups.filter(g => g.id === a.rule_group);\n    }\n    // Method 3: group.behavior_agent (reverse lookup)\n    else {\n        ag = groups.filter(g => g.behavior_agent === a.id);\n    }\n    \n    // Enrich rules with fire log data\n    ag = ag.map(g => {\n        const enrichedRules = (g.rules || []).map(r => {\n            const fullName = '[' + g.name + '] ' + r.name;\n            const logEntry = fireLog[fullName];\n            return {\n                ...r,\n                _lastFired: logEntry ? logEntry.lastFired : null,\n                _lastEvent: logEntry ? logEntry.event : null\n            };\n        });\n        return { ...g, rules: enrichedRules };\n    });\n    \n    return { \n        agent: a, \n        rule_groups: ag, \n        totalRules: ag.reduce((s, g) => s + (g.rules || []).length, 0) \n    };\n});\n\nconst liveStates = states.map(s => { \n    let cv = s.defaultValue; \n    if (cache) { \n        const v = cache.get(s.id); \n        if (v !== undefined) cv = v; \n    } \n    return { \n        id: s.id, \n        name: s.name || s.id, \n        type: s.type, \n        defaultValue: s.defaultValue, \n        currentValue: cv, \n        ttl: s.ttl \n    }; \n});\n\nmsg.payload = { agents: agentView, liveStates: liveStates };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 680,
+        "wires": [
+            [
+                "logic_inspect_view"
+            ]
+        ]
+    },
+    {
+        "id": "logic_inspect_view",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_behavior_ui",
+        "group": "grp_logic_view",
+        "page": "",
+        "ui": "",
+        "name": "Inspector",
+        "order": 2,
+        "width": "12",
+        "height": "8",
+        "format": "<template>\n<div class=\"logic-inspector\">\n    <!-- Live States Section -->\n    <v-card v-if=\"liveStates && liveStates.length > 0\" variant=\"tonal\" color=\"primary\" class=\"mb-3\">\n        <v-card-item>\n            <v-card-title class=\"text-subtitle-1\">\n                <v-icon icon=\"mdi-memory\" class=\"mr-2\"></v-icon>Live States ({{ liveStates.length }})\n            </v-card-title>\n        </v-card-item>\n        <v-card-text style=\"max-height: 200px; overflow-y: auto;\">\n            <div style=\"display: flex; flex-wrap: wrap; gap: 6px;\">\n                <v-chip v-for=\"s in liveStates\" :key=\"s.id\" size=\"small\" \n                    :color=\"s.currentValue !== s.defaultValue ? 'success' : 'grey'\" variant=\"flat\">\n                    {{ s.name || s.id }}: <strong class=\"ml-1\">{{ s.currentValue }}</strong>\n                </v-chip>\n            </div>\n        </v-card-text>\n    </v-card>\n    \n    <v-alert v-if=\"!behaviors || behaviors.length === 0\" type=\"info\" variant=\"tonal\">No Behavior Agents configured.</v-alert>\n    \n    <v-expansion-panels v-else variant=\"accordion\">\n        <v-expansion-panel v-for=\"item in behaviors\" :key=\"item.agent.id\">\n            <v-expansion-panel-title>\n                <div class=\"d-flex align-center w-100\">\n                    <v-icon :icon=\"getCategoryIcon(item.agent.category)\" class=\"mr-2\" :color=\"getCategoryColor(item.agent.category)\"></v-icon>\n                    <div class=\"flex-grow-1\">\n                        <strong>{{ item.agent.name }}</strong>\n                        <span class=\"text-caption text-grey ml-2\">{{ item.agent.category }}</span>\n                    </div>\n                    <!-- Most recent trigger indicator -->\n                    <div v-if=\"getAgentLastFired(item)\" class=\"d-flex align-center mr-3\">\n                        <v-icon icon=\"mdi-lightning-bolt\" size=\"small\" :color=\"isRecent(getAgentLastFired(item).time) ? 'warning' : 'grey'\" class=\"mr-1\"></v-icon>\n                        <span class=\"text-caption\" :class=\"isRecent(getAgentLastFired(item).time) ? 'text-warning font-weight-bold' : 'text-grey'\">\n                            {{ getAgentLastFired(item).ruleName }} • {{ formatTime(getAgentLastFired(item).time) }}\n                        </span>\n                    </div>\n                    <v-chip size=\"x-small\" :color=\"item.totalRules > 0 ? 'primary' : 'grey'\" class=\"mr-2\">{{ item.totalRules }} rules</v-chip>\n                </div>\n            </v-expansion-panel-title>\n            <v-expansion-panel-text>\n                <div class=\"text-caption text-grey mb-3\" v-if=\"item.agent.description\">{{ item.agent.description }}</div>\n                \n                <!-- Flattened rules list - directly under agent -->\n                <v-list density=\"compact\" class=\"rules-list\">\n                    <template v-for=\"g in item.rule_groups\" :key=\"g.id\">\n                        <!-- Group header (subtle) -->\n                        <v-list-subheader v-if=\"item.rule_groups.length > 1\" class=\"group-subheader\">\n                            <v-icon icon=\"mdi-folder-cog\" size=\"x-small\" class=\"mr-1\"></v-icon>\n                            {{ g.name }}\n                        </v-list-subheader>\n                        \n                        <!-- Rules directly listed -->\n                        <v-list-item v-for=\"(rule, idx) in (g.rules || [])\" :key=\"g.id + '-' + idx\" class=\"rule-item\" rounded>\n                            <template v-slot:prepend>\n                                <div class=\"d-flex flex-column align-center mr-2\" style=\"min-width: 40px;\">\n                                    <v-chip size=\"x-small\" variant=\"flat\" color=\"grey\">P{{ rule.priority || 1 }}</v-chip>\n                                    <v-icon v-if=\"rule._lastFired && isRecent(rule._lastFired)\" \n                                        icon=\"mdi-lightning-bolt\" size=\"x-small\" color=\"warning\" class=\"mt-1\">\n                                    </v-icon>\n                                </div>\n                            </template>\n                            <v-list-item-title class=\"text-body-2 font-weight-medium\">{{ rule.name }}</v-list-item-title>\n                            <v-list-item-subtitle class=\"text-caption\">\n                                <span v-if=\"rule._lastFired\" class=\"text-grey\">\n                                    Last: {{ formatTime(rule._lastFired) }}\n                                </span>\n                                <span v-if=\"rule._lastEvent && rule._lastEvent.params\" class=\"ml-2\">\n                                    → <code>{{ formatParams(rule._lastEvent.params) }}</code>\n                                </span>\n                            </v-list-item-subtitle>\n                            <template v-slot:append>\n                                <v-chip size=\"x-small\" variant=\"tonal\" :color=\"getEventColor(rule.event?.type)\">\n                                    {{ rule.event?.type || '?' }}\n                                </v-chip>\n                            </template>\n                        </v-list-item>\n                    </template>\n                </v-list>\n            </v-expansion-panel-text>\n        </v-expansion-panel>\n    </v-expansion-panels>\n</div>\n</template>\n\n<style scoped>\n.logic-inspector { padding: 8px; }\n.rules-list { background: transparent; }\n.rule-item { background: white; margin-bottom: 4px; border: 1px solid #e0e0e0; }\n.group-subheader { font-size: 11px; min-height: 28px; color: #666; background: #f5f5f5; margin: 8px 0 4px 0; border-radius: 4px; }\ncode { background: #f0f0f0; padding: 2px 4px; border-radius: 3px; font-size: 10px; }\n</style>\n\n<script>\nexport default {\n    data() { return { behaviors: [], liveStates: [] } },\n    watch: { \n        msg: { \n            handler(m) { \n                if (m && m.payload) { \n                    this.behaviors = m.payload.agents || []; \n                    this.liveStates = m.payload.liveStates || []; \n                } \n            }, \n            deep: true, \n            immediate: true \n        } \n    },\n    methods: {\n        getCategoryIcon(cat) { \n            const icons = {'lighting':'mdi-lightbulb','hvac':'mdi-thermostat','climate':'mdi-thermostat','security':'mdi-shield','energy':'mdi-lightning-bolt','global':'mdi-earth','safety':'mdi-alert-circle'}; \n            return icons[cat] || 'mdi-cog'; \n        },\n        getCategoryColor(cat) { \n            const colors = {'lighting':'amber','hvac':'orange','climate':'orange','security':'red','energy':'green','global':'blue','safety':'deep-orange'}; \n            return colors[cat] || 'grey'; \n        },\n        getEventColor(type) { \n            const colors = {'set_state':'purple','control_device':'blue','control_group':'teal'}; \n            return colors[type] || 'grey'; \n        },\n        isRecent(timestamp) {\n            return (Date.now() - timestamp) < 10000; // Within last 10 seconds\n        },\n        formatTime(timestamp) {\n            const diff = Math.floor((Date.now() - timestamp) / 1000);\n            if (diff < 60) return diff + 's ago';\n            if (diff < 3600) return Math.floor(diff/60) + 'm ago';\n            return new Date(timestamp).toLocaleTimeString();\n        },\n        formatParams(params) {\n            if (!params) return '';\n            const parts = [];\n            if (params.id) parts.push(params.id);\n            if (params.tag) parts.push('tag:' + params.tag);\n            if (params.value !== undefined) parts.push('=' + params.value);\n            if (params.value_from_fact) parts.push('=' + params.value_from_fact);\n            if (params.value_expr) parts.push('=expr');\n            return parts.join(' ');\n        },\n        getAgentLastFired(item) {\n            // Find the most recently fired rule across all rule groups in this agent\n            let mostRecent = null;\n            let mostRecentTime = 0;\n            \n            if (!item.rule_groups) return null;\n            \n            item.rule_groups.forEach(g => {\n                if (!g.rules) return;\n                g.rules.forEach(rule => {\n                    if (rule._lastFired && rule._lastFired > mostRecentTime) {\n                        mostRecentTime = rule._lastFired;\n                        mostRecent = {\n                            time: rule._lastFired,\n                            ruleName: rule.name.length > 25 ? rule.name.substring(0, 25) + '...' : rule.name\n                        };\n                    }\n                });\n            });\n            \n            return mostRecent;\n        }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 460,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "sim_refresh_btn",
+        "type": "ui-button",
+        "z": "tab_bms_v9",
+        "g": "grp_simulator",
+        "group": "grp_sim_sensors",
+        "name": "Refresh",
+        "label": "🔄 Refresh",
+        "order": 1,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "mdi-refresh",
+        "iconPosition": "left",
+        "payload": "refresh",
+        "payloadType": "str",
+        "x": 700,
+        "y": 700,
+        "wires": [
+            [
+                "sim_build_ui"
+            ]
+        ]
+    },
+    {
+        "id": "sim_auto_refresh",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_simulator",
+        "name": "Auto",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "refresh",
+        "payloadType": "str",
+        "x": 690,
+        "y": 660,
+        "wires": [
+            [
+                "sim_build_ui"
+            ]
+        ]
+    },
+    {
+        "id": "sim_build_ui",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_simulator",
+        "name": "Build UI",
+        "func": "const bacnet = global.get('bacnetPoints') || {};\nconst meta = global.get('bmsMetadata') || {};\nconst grouped = {};\n\nObject.entries(bacnet).forEach(([id, p]) => {\n    if (p.access !== 'read_only') return;\n    if (id === 'glob_outside_temp' || id === 'glob_outside_lux') return;\n    \n    const m = meta[id] || { tags: [], zone: 'misc' };\n    const floor = (m.tags || []).find(t => t.startsWith('floor')) || 'global';\n    const zone = m.zone || 'misc';\n    \n    if (!grouped[floor]) grouped[floor] = {};\n    if (!grouped[floor][zone]) grouped[floor][zone] = [];\n    \n    // Detect type from units - 'bool' means boolean sensor\n    const isBoolean = (p.units === 'bool');\n    \n    grouped[floor][zone].push({ \n        id, \n        name: p.objectName, \n        type: isBoolean ? 'boolean' : 'analog',  // Fixed: derive type from units\n        value: p.value,      // Fixed: use 'value' not 'presentValue'\n        units: p.units \n    });\n});\n\nmsg.payload = grouped;\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 660,
+        "wires": [
+            [
+                "sim_render_ui"
+            ]
+        ]
+    },
+    {
+        "id": "sim_render_ui",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_simulator",
+        "group": "grp_sim_sensors",
+        "page": "",
+        "ui": "",
+        "name": "Simulator UI",
+        "order": 2,
+        "width": "12",
+        "height": "0",
+        "format": "<template>\n    <div>\n        <v-alert v-if=\"!grouped || Object.keys(grouped).length === 0\" type=\"info\">No sensors</v-alert>\n        <v-expansion-panels v-else multiple v-model=\"panels\">\n            <v-expansion-panel v-for=\"(zones, floor) in grouped\" :key=\"floor\">\n                <v-expansion-panel-title><v-icon :icon=\"floor === 'global' ? 'mdi-earth' : 'mdi-office-building'\" class=\"mr-2\" color=\"primary\"></v-icon><strong>{{ floor === 'global' ? 'Global' : floor.replace('floor', 'Floor ') }}</strong></v-expansion-panel-title>\n                <v-expansion-panel-text>\n                    <div style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px;\">\n                        <v-card v-for=\"(devices, zone) in zones\" :key=\"zone\" variant=\"outlined\">\n                            <v-card-item density=\"compact\"><v-card-title class=\"text-caption\">{{ zone }}</v-card-title></v-card-item>\n                            <v-card-text class=\"pt-0\">\n                                <div v-for=\"d in devices\" :key=\"d.id\" style=\"padding: 6px; background: #fafafa; border-radius: 4px; margin-bottom: 6px;\">\n                                    <div class=\"d-flex justify-space-between text-caption mb-1\"><span>{{ d.name }}</span><span>{{ d.units }}</span></div>\n                                    <v-switch v-if=\"d.type === 'boolean'\" :model-value=\"localVals[d.id]\" color=\"success\" density=\"compact\" hide-details :label=\"localVals[d.id] ? 'ON' : 'OFF'\" @update:model-value=\"(val) => updateSensor(d.id, val)\"></v-switch>\n                                    <div v-else><v-slider :model-value=\"localVals[d.id]\" :min=\"getMin(d)\" :max=\"getMax(d)\" :step=\"getStep(d)\" thumb-label hide-details @update:model-value=\"(val) => localVals[d.id] = val\" @end=\"sendUpdate(d.id)\"></v-slider><div class=\"text-right text-caption\"><strong>{{ localVals[d.id] }}</strong></div></div>\n                                </div>\n                            </v-card-text>\n                        </v-card>\n                    </div>\n                </v-expansion-panel-text>\n            </v-expansion-panel>\n        </v-expansion-panels>\n    </div>\n</template>\n<script>\nexport default {\n    data() { return { grouped: {}, panels: [0,1,2,3], localVals: {}, editing: null } },\n    watch: { \n        msg: { \n            handler(m) { \n                if (m && m.payload && typeof m.payload === 'object') { \n                    this.grouped = m.payload; \n                    // Sync all values from server (unless currently being edited)\n                    Object.values(m.payload).forEach(zones => \n                        Object.values(zones).forEach(devs => \n                            devs.forEach(d => { \n                                if (this.editing !== d.id) {\n                                    this.localVals[d.id] = d.value; \n                                }\n                            })\n                        )\n                    ); \n                } \n            }, \n            deep: true, \n            immediate: true \n        } \n    },\n    methods: { \n        updateSensor(id, val) {\n            this.localVals[id] = val;\n            this.send({topic:'sensor_update', payload:{id: id, value: val}});\n        },\n        sendUpdate(id) {\n            this.editing = null;\n            this.send({topic:'sensor_update', payload:{id: id, value: this.localVals[id]}});\n        },\n        getMin(d) { const n = d.name.toLowerCase(); if (n.includes('temp')) return 10; if (n.includes('hum')) return 0; if (n.includes('co2')) return 300; if (n.includes('lux')) return 0; return 0; }, \n        getMax(d) { const n = d.name.toLowerCase(); if (n.includes('temp')) return 40; if (n.includes('hum')) return 100; if (n.includes('co2')) return 2000; if (n.includes('lux')) return 10000; return 100; }, \n        getStep(d) { const n = d.name.toLowerCase(); if (n.includes('co2')) return 10; if (n.includes('lux')) return 50; return 1; } \n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1070,
+        "y": 700,
+        "wires": [
+            [
+                "sim_write_sensor"
+            ]
+        ]
+    },
+    {
+        "id": "sim_write_sensor",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_simulator",
+        "name": "Write",
+        "func": "if (msg.topic === 'sensor_update') {\n    const bacnet = global.get('bacnetPoints');\n    if (bacnet && bacnet[msg.payload.id]) {\n        bacnet[msg.payload.id].value = msg.payload.value;\n        global.set('bacnetPoints', bacnet);\n    }\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "weather_settings_tick",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "UI Refresh 5s",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "2",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 960,
+        "wires": [
+            [
+                "weather_settings_data"
+            ]
+        ]
+    },
+    {
+        "id": "weather_settings_data",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "Build Settings Data",
+        "func": "const BMS = global.get('BMS');\nif (!BMS) return null;\nmsg.payload = BMS.getValues();\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 960,
+        "wires": [
+            [
+                "weather_settings_ui"
+            ]
+        ]
+    },
+    {
+        "id": "weather_settings_ui",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "group": "grp_location_settings",
+        "page": "",
+        "ui": "",
+        "name": "Location Settings UI",
+        "order": 0,
+        "width": "6",
+        "height": "10",
+        "head": "",
+        "format": "<template>\n    <div class=\"location-settings\">\n        <!-- Physics Simulator Toggle -->\n        <v-card variant=\"outlined\" class=\"mb-3\" :color=\"physicsEnabled ? 'success' : 'grey'\">\n            <v-card-item>\n                <template v-slot:prepend>\n                    <v-icon :icon=\"physicsEnabled ? 'mdi-cog-play' : 'mdi-cog-off'\" :color=\"physicsEnabled ? 'success' : 'grey'\" size=\"large\"></v-icon>\n                </template>\n                <v-card-title class=\"text-subtitle-1\">Physics Simulator</v-card-title>\n                <v-card-subtitle>{{ physicsEnabled ? 'Simulating sensor values' : 'Disabled - using real sensor data' }}</v-card-subtitle>\n                <template v-slot:append>\n                    <v-switch v-model=\"physicsEnabled\" color=\"success\" hide-details @update:model-value=\"togglePhysics\"></v-switch>\n                </template>\n            </v-card-item>\n            <v-card-text v-if=\"physicsEnabled\" class=\"pt-0\">\n                <v-alert type=\"warning\" variant=\"tonal\" density=\"compact\">\n                    <div class=\"text-caption\">⚠️ Physics simulation is active. Temperature, light, and CO2 sensors are being simulated based on actuator states and outside conditions. Disable for production use with real sensors.</div>\n                </v-alert>\n            </v-card-text>\n        </v-card>\n        \n        <!-- Location Settings -->\n        <v-card variant=\"tonal\" class=\"mb-3\">\n            <v-card-item>\n                <v-card-title class=\"text-subtitle-1\">🌍 Building Location</v-card-title>\n                <v-card-subtitle>Set location for weather and sun calculations</v-card-subtitle>\n            </v-card-item>\n            <v-card-text>\n                <v-alert v-if=\"editing\" type=\"warning\" variant=\"tonal\" density=\"compact\" class=\"mb-3\">\n                    <div class=\"text-caption\">✏️ Editing mode - auto-refresh paused</div>\n                </v-alert>\n                <v-tabs v-model=\"tab\" color=\"primary\" class=\"mb-3\">\n                    <v-tab value=\"city\">City Name</v-tab>\n                    <v-tab value=\"gps\">GPS Coordinates</v-tab>\n                </v-tabs>\n                <v-window v-model=\"tab\">\n                    <v-window-item value=\"city\">\n                        <v-text-field v-model=\"city\" label=\"City\" variant=\"outlined\" density=\"compact\" class=\"mb-2\" @focus=\"startEditing\" @update:model-value=\"startEditing\"></v-text-field>\n                        <v-text-field v-model=\"country\" label=\"Country\" variant=\"outlined\" density=\"compact\" @focus=\"startEditing\" @update:model-value=\"startEditing\"></v-text-field>\n                    </v-window-item>\n                    <v-window-item value=\"gps\">\n                        <v-text-field v-model.number=\"latitude\" label=\"Latitude\" type=\"number\" variant=\"outlined\" density=\"compact\" class=\"mb-2\" @focus=\"startEditing\" @update:model-value=\"startEditing\"></v-text-field>\n                        <v-text-field v-model.number=\"longitude\" label=\"Longitude\" type=\"number\" variant=\"outlined\" density=\"compact\" @focus=\"startEditing\" @update:model-value=\"startEditing\"></v-text-field>\n                    </v-window-item>\n                </v-window>\n                <div class=\"d-flex gap-2 mt-3\">\n                    <v-btn color=\"primary\" :disabled=\"!editing\" @click=\"saveLocation\" class=\"flex-grow-1\">💾 Save & Refresh</v-btn>\n                    <v-btn v-if=\"editing\" color=\"grey\" variant=\"outlined\" @click=\"cancelEditing\">Cancel</v-btn>\n                </div>\n            </v-card-text>\n        </v-card>\n        \n        <!-- Current Values -->\n        <v-card variant=\"outlined\">\n            <v-card-item><v-card-title class=\"text-subtitle-2\">Current Values</v-card-title></v-card-item>\n            <v-card-text>\n                <div class=\"d-flex flex-wrap gap-2\">\n                    <v-chip size=\"small\" variant=\"tonal\">🌡️ {{ outsideTemp }}°C</v-chip>\n                    <v-chip size=\"small\" variant=\"tonal\">☀️ {{ outsideLux }} lux</v-chip>\n                    <v-chip size=\"small\" variant=\"tonal\">🌅 {{ sunriseTime }}</v-chip>\n                    <v-chip size=\"small\" variant=\"tonal\">🌇 {{ sunsetTime }}</v-chip>\n                </div>\n            </v-card-text>\n        </v-card>\n    </div>\n</template>\n\n<script>\nexport default {\n    data() { \n        return { \n            tab: 'city', \n            city: 'Paris', \n            country: 'France', \n            latitude: 48.8566, \n            longitude: 2.3522, \n            outsideTemp: '--', \n            outsideLux: '--', \n            sunriseTime: '--:--', \n            sunsetTime: '--:--', \n            editing: false, \n            savedCity: 'Paris', \n            savedCountry: 'France', \n            savedLatitude: 48.8566, \n            savedLongitude: 2.3522,\n            physicsEnabled: true\n        } \n    },\n    watch: { \n        msg: { \n            handler(m) { \n                if (m && m.payload) { \n                    // Physics toggle\n                    if (m.payload.physics_enabled !== undefined) {\n                        this.physicsEnabled = m.payload.physics_enabled;\n                    }\n                    // Location data (only update if not editing)\n                    if (!this.editing) { \n                        if (m.payload.loc_city !== undefined) { this.city = m.payload.loc_city; this.savedCity = m.payload.loc_city; } \n                        if (m.payload.loc_country !== undefined) { this.country = m.payload.loc_country; this.savedCountry = m.payload.loc_country; } \n                        if (m.payload.loc_latitude !== undefined) { this.latitude = m.payload.loc_latitude; this.savedLatitude = m.payload.loc_latitude; } \n                        if (m.payload.loc_longitude !== undefined) { this.longitude = m.payload.loc_longitude; this.savedLongitude = m.payload.loc_longitude; } \n                    } \n                    // Weather data\n                    if (m.payload.glob_outside_temp !== undefined) this.outsideTemp = m.payload.glob_outside_temp; \n                    if (m.payload.glob_outside_lux !== undefined) this.outsideLux = m.payload.glob_outside_lux; \n                    if (m.payload.sun_sunrise_minutes !== undefined) { \n                        const sr = m.payload.sun_sunrise_minutes; \n                        this.sunriseTime = Math.floor(sr/60).toString().padStart(2,'0') + ':' + (sr%60).toString().padStart(2,'0'); \n                    } \n                    if (m.payload.sun_sunset_minutes !== undefined) { \n                        const ss = m.payload.sun_sunset_minutes; \n                        this.sunsetTime = Math.floor(ss/60).toString().padStart(2,'0') + ':' + (ss%60).toString().padStart(2,'0'); \n                    } \n                } \n            }, \n            deep: true, \n            immediate: true \n        } \n    },\n    methods: { \n        startEditing() { if (!this.editing) this.editing = true; }, \n        cancelEditing() { \n            this.editing = false; \n            this.city = this.savedCity; \n            this.country = this.savedCountry; \n            this.latitude = this.savedLatitude; \n            this.longitude = this.savedLongitude; \n        }, \n        saveLocation() { \n            this.send({ topic: 'update_location', payload: { mode: this.tab, city: this.city, country: this.country, latitude: this.latitude, longitude: this.longitude } }); \n            this.savedCity = this.city; \n            this.savedCountry = this.country; \n            this.savedLatitude = this.latitude; \n            this.savedLongitude = this.longitude; \n            this.editing = false; \n        },\n        togglePhysics(value) {\n            this.send({ topic: 'update_physics', payload: { enabled: value } });\n        }\n    }\n}\n</script>\n\n<style scoped>\n.location-settings { padding: 8px; }\n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 560,
+        "y": 960,
+        "wires": [
+            [
+                "weather_save_location"
+            ]
+        ]
+    },
+    {
+        "id": "weather_save_location",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "Save Location",
+        "func": "const BMS = global.get('BMS');\nif (!BMS) return null;\n\nif (msg.topic === 'update_location' && msg.payload) {\n    const loc = msg.payload;\n    if (loc.city) BMS.writeValue('loc_city', loc.city);\n    if (loc.country) BMS.writeValue('loc_country', loc.country);\n    if (loc.latitude !== undefined) BMS.writeValue('loc_latitude', loc.latitude);\n    if (loc.longitude !== undefined) BMS.writeValue('loc_longitude', loc.longitude);\n    node.warn('Location updated: ' + (loc.mode === 'city' ? loc.city + ', ' + loc.country : loc.latitude + ', ' + loc.longitude));\n    return { payload: 'refresh', topic: 'weather_trigger' };\n}\n\nif (msg.topic === 'update_physics' && msg.payload) {\n    const vp = global.get('virtualPoints') || {};\n    if (vp['physics_enabled']) {\n        vp['physics_enabled'].value = msg.payload.enabled;\n        global.set('virtualPoints', vp);\n        node.warn('Physics simulator: ' + (msg.payload.enabled ? 'ENABLED' : 'DISABLED'));\n        node.status({ fill: msg.payload.enabled ? 'green' : 'grey', shape: 'dot', text: 'Physics ' + (msg.payload.enabled ? 'ON' : 'OFF') });\n    }\n    return null;\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 960,
+        "wires": [
+            [
+                "weather_prepare"
+            ]
+        ]
+    },
+    {
+        "id": "weather_periodic_tick",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "Every 10 min",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 1020,
+        "wires": [
+            [
+                "weather_prepare"
+            ]
+        ]
+    },
+    {
+        "id": "weather_prepare",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "Prepare Request",
+        "func": "const vp = global.get('virtualPoints') || {};\nconst city = vp['loc_city']?.value || 'Paris';\nconst country = vp['loc_country']?.value || 'France';\nconst lat = vp['loc_latitude']?.value || 48.8566;\nconst lon = vp['loc_longitude']?.value || 2.3522;\n\nif (city && city.trim()) {\n    msg.location = { city: city, country: country };\n    node.status({fill: 'blue', shape: 'dot', text: city + ', ' + country});\n} else {\n    msg.location = { lat: lat, lon: lon };\n    node.status({fill: 'blue', shape: 'dot', text: lat.toFixed(2) + ', ' + lon.toFixed(2)});\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1020,
+        "wires": [
+            [
+                "weather_owm"
+            ]
+        ]
+    },
+    {
+        "id": "weather_owm",
+        "type": "openweathermap",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "OpenWeatherMap",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "",
+        "country": "",
+        "language": "en",
+        "x": 690,
+        "y": 1020,
+        "wires": [
+            [
+                "weather_parse"
+            ]
+        ]
+    },
+    {
+        "id": "weather_parse",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_weather",
+        "name": "Parse & Update",
+        "func": "const BMS = global.get('BMS');\nconst bacnet = global.get('bacnetPoints') || {};\n\nif (!msg.payload) {\n    node.status({fill: 'red', shape: 'ring', text: 'No data'});\n    return null;\n}\n\nconst weather = msg.payload;\nconst temp = weather.tempc;\nif (temp !== undefined && bacnet['glob_outside_temp']) {\n    bacnet['glob_outside_temp'].value = Math.round(temp * 10) / 10;\n}\n\nconst clouds = weather.clouds || 0;\nconst now = new Date();\nconst nowUnix = Math.floor(now.getTime() / 1000);\nconst sunriseUnix = weather.sunrise;\nconst sunsetUnix = weather.sunset;\nconst isDaylight = sunriseUnix && sunsetUnix ? (nowUnix >= sunriseUnix && nowUnix <= sunsetUnix) : true;\n\nlet estimatedLux = isDaylight ? Math.round(50000 * (1 - (clouds / 100) * 0.9)) : 10;\nif (bacnet['glob_outside_lux']) bacnet['glob_outside_lux'].value = estimatedLux;\nglobal.set('bacnetPoints', bacnet);\n\nif (sunriseUnix && sunsetUnix && BMS) {\n    const sunriseDate = new Date(sunriseUnix * 1000);\n    const sunsetDate = new Date(sunsetUnix * 1000);\n    BMS.setVirtualValue('sun_sunrise_minutes', sunriseDate.getHours() * 60 + sunriseDate.getMinutes());\n    BMS.setVirtualValue('sun_sunset_minutes', sunsetDate.getHours() * 60 + sunsetDate.getMinutes());\n    BMS.setVirtualValue('sun_is_daylight', isDaylight);\n}\n\nconst tempStr = temp !== undefined ? temp.toFixed(1) + '°C' : '?';\nconst location = msg.location?.city || 'GPS';\nnode.status({fill: 'green', shape: 'dot', text: tempStr + ' | ' + estimatedLux + ' lux | ' + location});\nmsg.weatherUpdate = tempStr + ', ' + clouds + '% clouds, ' + estimatedLux + ' lux';\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 1020,
+        "wires": [
+            [
+                "weather_settings_ui"
+            ]
+        ]
+    },
+    {
+        "id": "cf352adf5f78d03f",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_logic_kernel",
+        "name": "Update time",
+        "func": "const BMS = global.get('BMS');\nconst now = new Date();\nconst h = now.getHours();\nconst m = now.getMinutes();\nconst d = now.getDay() === 0 ? 7 : now.getDay();\nconst minutesSinceMidnight = h * 60 + m;\nconst minuteOfWeek = (d - 1) * 1440 + minutesSinceMidnight;\n\nif (BMS) {\n    BMS.setVirtualValue('glob_time_hour', h);\n    BMS.setVirtualValue('glob_time_day', d);\n    BMS.setVirtualValue('glob_time_minutes', minutesSinceMidnight);\n    BMS.setVirtualValue('glob_time_minute_of_week', minuteOfWeek);\n}\n\nnode.status({fill: 'green', shape: 'dot', text: 'Day ' + d + ' ' + h + ':' + m.toString().padStart(2,'0') + ' (week min: ' + minuteOfWeek + ')'});\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 80,
+        "wires": [
+            [
+                "node_facts"
+            ]
+        ]
+    },
+    {
+        "id": "device_refresh_btn",
+        "type": "ui-button",
+        "z": "tab_bms_v9",
+        "g": "grp_device_mgr",
+        "group": "grp_device_manager",
+        "name": "Refresh Devices",
+        "label": "🔄 Refresh Device List",
+        "order": 1,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "Reload device list with current tags",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "mdi-refresh",
+        "iconPosition": "left",
+        "payload": "refresh",
+        "payloadType": "str",
+        "topic": "refresh_devices",
+        "topicType": "str",
+        "enableClick": true,
+        "x": 140,
+        "y": 1160,
+        "wires": [
+            [
+                "device_build_data"
+            ]
+        ]
+    },
+    {
+        "id": "device_build_data",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_device_mgr",
+        "name": "Build Device Data",
+        "func": "const bacnetPoints = global.get('bacnetPoints') || {};\nconst bmsMetadata = global.get('bmsMetadata') || {};\nconst virtualPoints = global.get('virtualPoints') || {};\n\nconst devices = [];\n\nObject.entries(bacnetPoints).forEach(([id, point]) => {\n    const meta = bmsMetadata[id] || { tags: [], zone: '' };\n    devices.push({\n        id: id,\n        name: point.objectName,\n        type: point.access === 'read_only' ? 'sensor' : 'actuator',\n        units: point.units,\n        access: point.access,\n        min: point.min,\n        max: point.max,\n        value: point.value,\n        zone: meta.zone || '',\n        tags: meta.tags || [],\n        source: 'bacnet'\n    });\n});\n\nObject.entries(virtualPoints).forEach(([id, point]) => {\n    devices.push({\n        id: id,\n        name: point.name,\n        type: 'virtual',\n        units: point.units,\n        access: point.writable ? 'read_write' : 'read_only',\n        min: point.min,\n        max: point.max,\n        value: point.value,\n        zone: '',\n        tags: [],\n        source: 'virtual'\n    });\n});\n\nconst allTags = new Set();\nObject.values(bmsMetadata).forEach(m => {\n    if (m.tags) m.tags.forEach(t => allTags.add(t));\n});\n\nmsg.payload = {\n    devices: devices,\n    allTags: [...allTags].sort()\n};\n\nnode.status({ fill: 'green', shape: 'dot', text: devices.length + ' devices, ' + allTags.size + ' tags' });\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 1140,
+        "wires": [
+            [
+                "device_manager_ui"
+            ]
+        ]
+    },
+    {
+        "id": "device_manager_ui",
+        "type": "ui-template",
+        "z": "tab_bms_v9",
+        "g": "grp_device_mgr",
+        "group": "grp_device_manager",
+        "page": "",
+        "ui": "",
+        "name": "Device Manager UI",
+        "order": 2,
+        "width": "12",
+        "height": "0",
+        "format": "<template>\n<div class=\"device-manager\">\n    <!-- Filter & Tag Management Bar -->\n    <v-card class=\"mb-3\" variant=\"tonal\" color=\"primary\">\n        <v-card-text>\n            <div class=\"d-flex align-center flex-wrap gap-2 mb-2\">\n                <v-icon icon=\"mdi-filter\" class=\"mr-2\"></v-icon>\n                <span class=\"text-subtitle-2 mr-3\">Filter by Tags:</span>\n                <v-chip v-for=\"tag in allTags\" :key=\"tag\"\n                    :color=\"selectedTags.includes(tag) ? 'primary' : 'default'\"\n                    :variant=\"selectedTags.includes(tag) ? 'flat' : 'outlined'\"\n                    size=\"small\" class=\"ma-1\" @click=\"toggleTagFilter(tag)\">\n                    {{ tag }} <span class=\"text-caption ml-1\">({{ getTagCount(tag) }})</span>\n                </v-chip>\n                <v-chip v-if=\"selectedTags.length > 0\" color=\"error\" variant=\"outlined\" size=\"small\" class=\"ma-1\" @click=\"clearFilters\">\n                    <v-icon icon=\"mdi-close\" size=\"small\" class=\"mr-1\"></v-icon> Clear\n                </v-chip>\n            </div>\n            <div class=\"d-flex align-center gap-2\">\n                <v-text-field v-model=\"newTagName\" label=\"New tag name\" density=\"compact\" variant=\"outlined\" hide-details style=\"max-width: 200px;\" @keyup.enter=\"createTag\"></v-text-field>\n                <v-btn color=\"success\" size=\"small\" variant=\"flat\" :disabled=\"!newTagName.trim()\" @click=\"createTag\">\n                    <v-icon icon=\"mdi-plus\" class=\"mr-1\"></v-icon> Create Tag\n                </v-btn>\n                <v-spacer></v-spacer>\n                <v-text-field v-model=\"searchQuery\" label=\"Search devices...\" density=\"compact\" variant=\"outlined\" hide-details prepend-inner-icon=\"mdi-magnify\" clearable style=\"max-width: 250px;\"></v-text-field>\n            </div>\n        </v-card-text>\n    </v-card>\n    \n    <!-- Stats Bar -->\n    <div class=\"d-flex gap-3 mb-3\">\n        <v-chip color=\"blue\" variant=\"tonal\"><v-icon icon=\"mdi-chip\" class=\"mr-1\"></v-icon> {{ filteredDevices.length }} / {{ devices.length }} devices</v-chip>\n        <v-chip color=\"green\" variant=\"tonal\"><v-icon icon=\"mdi-tag-multiple\" class=\"mr-1\"></v-icon> {{ allTags.length }} tags</v-chip>\n        <v-chip v-if=\"selectedTags.length > 0\" color=\"purple\" variant=\"tonal\"><v-icon icon=\"mdi-filter\" class=\"mr-1\"></v-icon> AND filter: {{ selectedTags.join(' + ') }}</v-chip>\n        <v-spacer></v-spacer>\n        <v-chip color=\"grey\" variant=\"tonal\" size=\"small\"><v-icon icon=\"mdi-refresh\" class=\"mr-1\"></v-icon> Auto-refresh 5s</v-chip>\n    </div>\n    \n    <!-- Device List -->\n    <v-card>\n        <div ref=\"tableContainer\" style=\"max-height: 500px; overflow-y: auto;\">\n            <table class=\"device-table\">\n                <thead>\n                    <tr>\n                        <th style=\"width: 160px;\">ID</th>\n                        <th style=\"width: 180px;\">Name</th>\n                        <th style=\"width: 70px;\">Type</th>\n                        <th style=\"width: 90px;\">Value</th>\n                        <th style=\"width: 50px;\">Units</th>\n                        <th style=\"width: 90px;\">Zone</th>\n                        <th>Tags</th>\n                        <th style=\"width: 50px;\"></th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-for=\"device in filteredDevices\" :key=\"device.id\" :class=\"{'virtual-row': device.source === 'virtual'}\">\n                        <td class=\"font-weight-medium text-caption\">{{ device.id }}</td>\n                        <td>{{ device.name }}</td>\n                        <td><v-chip size=\"x-small\" :color=\"getTypeColor(device)\" variant=\"flat\">{{ device.type }}</v-chip></td>\n                        <td class=\"value-cell\">\n                            <span v-if=\"device.units === 'bool'\" :class=\"device.value ? 'bool-true' : 'bool-false'\">\n                                {{ device.value ? '● ON' : '○ OFF' }}\n                            </span>\n                            <span v-else class=\"numeric-value\">{{ formatValue(device.value, device.units) }}</span>\n                        </td>\n                        <td class=\"text-caption\">{{ device.units }}</td>\n                        <td class=\"text-caption\">{{ device.zone }}</td>\n                        <td>\n                            <div class=\"d-flex flex-wrap gap-1 align-center\">\n                                <v-chip v-for=\"tag in device.tags\" :key=\"tag\" size=\"x-small\" variant=\"outlined\" closable @click:close=\"removeTag(device.id, tag)\">{{ tag }}</v-chip>\n                                <v-menu v-if=\"device.source === 'bacnet'\">\n                                    <template v-slot:activator=\"{ props }\">\n                                        <v-btn v-bind=\"props\" icon=\"mdi-plus\" size=\"x-small\" variant=\"text\" color=\"primary\"></v-btn>\n                                    </template>\n                                    <v-list density=\"compact\" max-height=\"300\">\n                                        <v-list-subheader>Add Tag</v-list-subheader>\n                                        <v-list-item v-for=\"tag in getAvailableTagsFor(device)\" :key=\"tag\" @click=\"addTag(device.id, tag)\">\n                                            <v-list-item-title>{{ tag }}</v-list-item-title>\n                                        </v-list-item>\n                                        <v-list-item v-if=\"getAvailableTagsFor(device).length === 0\" disabled>\n                                            <v-list-item-title class=\"text-grey\">All tags assigned</v-list-item-title>\n                                        </v-list-item>\n                                    </v-list>\n                                </v-menu>\n                            </div>\n                        </td>\n                        <td><v-chip v-if=\"device.access === 'read_write'\" size=\"x-small\" color=\"orange\" variant=\"flat\">RW</v-chip></td>\n                    </tr>\n                    <tr v-if=\"filteredDevices.length === 0\">\n                        <td colspan=\"8\" class=\"text-center text-grey pa-4\">No devices match the current filters</td>\n                    </tr>\n                </tbody>\n            </table>\n        </div>\n    </v-card>\n    \n    <v-snackbar v-model=\"snackbar.show\" :color=\"snackbar.color\" :timeout=\"2000\">{{ snackbar.text }}</v-snackbar>\n</div>\n</template>\n\n<style scoped>\n.device-manager { padding: 12px; }\n.device-table { width: 100%; border-collapse: collapse; font-size: 13px; }\n.device-table th { text-align: left; padding: 8px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0; position: sticky; top: 0; z-index: 1; }\n.device-table td { padding: 6px 12px; border-bottom: 1px solid #eee; vertical-align: middle; }\n.device-table tr:hover { background: #fafafa; }\n.virtual-row { background: #f5f5f5; }\n.value-cell { font-family: 'Roboto Mono', monospace; font-size: 12px; }\n.numeric-value { font-weight: 500; color: #1976d2; }\n.bool-true { color: #4caf50; font-weight: 600; }\n.bool-false { color: #9e9e9e; }\n</style>\n\n<script>\nexport default {\n    data() {\n        return { devices: [], allTags: [], selectedTags: [], searchQuery: '', newTagName: '', snackbar: { show: false, text: '', color: 'success' } }\n    },\n    computed: {\n        filteredDevices() {\n            let result = this.devices;\n            if (this.selectedTags.length > 0) result = result.filter(d => this.selectedTags.every(tag => d.tags && d.tags.includes(tag)));\n            if (this.searchQuery && this.searchQuery.trim()) {\n                const q = this.searchQuery.toLowerCase();\n                result = result.filter(d => d.id.toLowerCase().includes(q) || d.name.toLowerCase().includes(q) || (d.zone && d.zone.toLowerCase().includes(q)));\n            }\n            return result;\n        }\n    },\n    watch: {\n        msg: {\n            handler(newMsg) {\n                if (newMsg && newMsg.payload) {\n                    if (newMsg.payload.devices) this.devices = newMsg.payload.devices;\n                    if (newMsg.payload.allTags) this.allTags = newMsg.payload.allTags;\n                }\n            },\n            deep: true,\n            immediate: true\n        }\n    },\n    methods: {\n        formatValue(value, units) {\n            if (value === undefined || value === null) return '--';\n            if (typeof value === 'number') {\n                if (units === '°C' || units === '°') return value.toFixed(1);\n                if (units === '%') return value.toFixed(0) + '%';\n                if (units === 'lux' || units === 'ppm') return value.toLocaleString();\n                if (Number.isInteger(value)) return value.toString();\n                return value.toFixed(2);\n            }\n            return String(value);\n        },\n        toggleTagFilter(tag) { const idx = this.selectedTags.indexOf(tag); if (idx >= 0) this.selectedTags.splice(idx, 1); else this.selectedTags.push(tag); },\n        clearFilters() { this.selectedTags = []; this.searchQuery = ''; },\n        getTagCount(tag) { return this.devices.filter(d => d.tags && d.tags.includes(tag)).length; },\n        getTypeColor(device) { if (device.source === 'virtual') return 'purple'; if (device.type === 'actuator') return 'orange'; return 'blue'; },\n        getAvailableTagsFor(device) { return this.allTags.filter(t => !device.tags || !device.tags.includes(t)); },\n        addTag(deviceId, tag) {\n            this.send({ topic: 'tag_add', payload: { deviceId, tag } });\n            const device = this.devices.find(d => d.id === deviceId);\n            if (device) { if (!device.tags) device.tags = []; if (!device.tags.includes(tag)) { device.tags.push(tag); device.tags.sort(); } }\n            this.showSnackbar(`Added \"${tag}\" to ${deviceId}`, 'success');\n        },\n        removeTag(deviceId, tag) {\n            this.send({ topic: 'tag_remove', payload: { deviceId, tag } });\n            const device = this.devices.find(d => d.id === deviceId);\n            if (device && device.tags) { const idx = device.tags.indexOf(tag); if (idx >= 0) device.tags.splice(idx, 1); }\n            const tagStillUsed = this.devices.some(d => d.tags && d.tags.includes(tag));\n            if (!tagStillUsed) { const tagIdx = this.allTags.indexOf(tag); if (tagIdx >= 0) this.allTags.splice(tagIdx, 1); this.showSnackbar(`Removed \"${tag}\" (tag deleted)`, 'warning'); }\n            else this.showSnackbar(`Removed \"${tag}\" from ${deviceId}`, 'info');\n        },\n        createTag() {\n            const tag = this.newTagName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');\n            if (!tag) return;\n            if (this.allTags.includes(tag)) { this.showSnackbar(`Tag \"${tag}\" already exists`, 'warning'); return; }\n            this.allTags.push(tag); this.allTags.sort(); this.newTagName = '';\n            this.send({ topic: 'tag_create', payload: { tag } });\n            this.showSnackbar(`Created tag \"${tag}\"`, 'success');\n        },\n        showSnackbar(text, color) { this.snackbar = { show: true, text, color }; }\n    }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 550,
+        "y": 1140,
+        "wires": [
+            [
+                "device_tag_handler"
+            ]
+        ]
+    },
+    {
+        "id": "device_tag_handler",
+        "type": "function",
+        "z": "tab_bms_v9",
+        "g": "grp_device_mgr",
+        "name": "Tag Handler",
+        "func": "const topic = msg.topic;\nconst payload = msg.payload;\n\nif (!topic || !payload) return null;\n\nlet bmsMetadata = global.get('bmsMetadata') || {};\n\nswitch (topic) {\n    case 'tag_add': {\n        const { deviceId, tag } = payload;\n        if (!bmsMetadata[deviceId]) bmsMetadata[deviceId] = { tags: [], zone: '' };\n        if (!bmsMetadata[deviceId].tags) bmsMetadata[deviceId].tags = [];\n        if (!bmsMetadata[deviceId].tags.includes(tag)) {\n            bmsMetadata[deviceId].tags.push(tag);\n            bmsMetadata[deviceId].tags.sort();\n            node.warn(`Tag added: ${tag} → ${deviceId}`);\n        }\n        break;\n    }\n    case 'tag_remove': {\n        const { deviceId, tag } = payload;\n        if (bmsMetadata[deviceId] && bmsMetadata[deviceId].tags) {\n            const idx = bmsMetadata[deviceId].tags.indexOf(tag);\n            if (idx >= 0) { bmsMetadata[deviceId].tags.splice(idx, 1); node.warn(`Tag removed: ${tag} ← ${deviceId}`); }\n        }\n        break;\n    }\n    case 'tag_create': {\n        node.warn(`Tag created: ${payload.tag}`);\n        break;\n    }\n}\n\nglobal.set('bmsMetadata', bmsMetadata);\nnode.status({ fill: 'green', shape: 'dot', text: topic + ' processed' });\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "device_auto_refresh",
+        "type": "inject",
+        "z": "tab_bms_v9",
+        "g": "grp_device_mgr",
+        "name": "Auto on Boot",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "refresh",
+        "payloadType": "str",
+        "x": 140,
+        "y": 1120,
+        "wires": [
+            [
+                "device_build_data"
+            ]
+        ]
+    }
+]

@@ -1,0 +1,13 @@
+{
+    "name": "node-red-project",
+    "description": "A Node-RED Project",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "@flowfuse/node-red-dashboard": "~1.30.0",
+        "json-rules-engine": "^7.3.1",
+        "node-cache": "^5.1.2",
+        "node-red-node-openweathermap": "^1.0.1",
+        "suncalc": "^1.9.0"
+    }
+}

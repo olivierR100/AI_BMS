@@ -1,0 +1,24 @@
+# --- Secrets & credentials (NEVER commit) ---
+flows_cred.json
+.config.runtime.json
+*credentialSecret*
+
+# --- Node-RED runtime/editor state (machine-specific, regenerated) ---
+.config.nodes.json
+.config.users.json
+.sessions.json
+.config.*.backup
+
+# --- Backups & editor leftovers ---
+*.backup
+*_json.backup
+settings_js.save
+*.save
+*~
+
+# --- Dependencies ---
+node_modules/
+
+# --- OS noise ---
+.DS_Store
+Thumbs.db
