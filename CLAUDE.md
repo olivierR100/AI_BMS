@@ -21,6 +21,14 @@ config schema: `docs/BMS_CONFIG_SCHEMA.md`.
 
 Slash commands: `/bms-status`, `/bms-apply <request>`, `/bms-debug <symptom>`, `/bms-simulate <scenario>`.
 
+## In-dashboard AI assistant (Track 2)
+Dashboard page `/dashboard/ai-assistant`: end-user chat → Anthropic Messages API with the
+`apply_bms_config` tool → `BMS.applyConfig`. Key + model in `aiChatSettings` (file-store
+persisted; key deliberately visible/erasable in the UI — erase before transferring).
+Shared prompt builder: global `buildAIPrompt('paste'|'tool')` defined in Initialize System —
+the alignment guidelines live there now; the non-negotiable "never remove them" rule applies
+to that function.
+
 ## Working agreements
 - All point access through the global `BMS` abstraction; config application through `BMS.applyConfig` (single seam, defined in "Initialize System (V12)").
 - Preserve the `bacnetPoints` (hardware) / `bmsMetadata` (BMS-side) separation — it is the future real-BACnet seam.

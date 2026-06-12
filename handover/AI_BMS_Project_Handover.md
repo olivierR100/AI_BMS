@@ -140,6 +140,19 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, 83 nodes organized into 10 visual
 ### 3.10 DEVICE MANAGER
 - **Refresh Devices** / **Auto on Boot** → **Build Device Data** → **Device Manager UI** → **Tag Handler**: browse all points, edit tags/zones in `bmsMetadata` at runtime (edits persist to the `file` store).
 
+### 3.11a AI CHAT (Track 2) — in-dashboard assistant
+New dashboard page **AI Assistant** (`/dashboard/ai-assistant`, listed first): chat panel +
+API-settings panel. **Chat UI** → **Chat Orchestrator** (builds Anthropic Messages API request:
+system = `buildAIPrompt('tool')`, history from flow context `chatHistory`, tools =
+`aiChatTools`) → **Call Anthropic API** (http request) → **Process Response** (final text →
+chat; `tool_use` → `BMS.applyConfig` → `tool_result` appended → loops back to the API, max 5
+rounds; apply results shown as chips). **API Key Settings UI** → **Chat Settings Handler**:
+the Anthropic key + model are stored in `aiChatSettings` (persisted to the `file` store,
+**plain text, deliberately visible in the UI** so it gets erased before transfer — use the
+Erase button). The system prompt builder is now the shared global `buildAIPrompt(mode)`
+(`'paste'` = legacy prompt page verbatim incl. alignment guidelines; `'tool'` = same context
+but instructs tool-calling instead of JSON output).
+
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
 (open on localhost like the dashboard; set `BMS_API_TOKEN` env var to require an
