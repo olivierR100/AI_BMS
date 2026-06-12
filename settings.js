@@ -361,11 +361,13 @@ module.exports = {
      * provided here will enable file-based context that flushes to disk every 30 seconds.
      * Refer to the documentation for further options: https://nodered.org/docs/api/context/
      */
-    //contextStorage: {
-    //    default: {
-    //        module:"localfilesystem"
-    //    },
-    //},
+    /* default stays in memory: the BMS abstraction object (functions) and the NodeCache
+     * instance are not JSON-serializable. Only the AI config keys are written to 'file'
+     * explicitly (Parse & Apply) and restored at boot (Initialize System). */
+    contextStorage: {
+        default: { module: "memory" },
+        file: { module: "localfilesystem" }
+    },
 
     /** `global.keys()` returns a list of all properties set in global context.
      * This allows them to be displayed in the Context Sidebar within the editor.

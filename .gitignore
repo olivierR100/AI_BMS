@@ -22,3 +22,6 @@ node_modules/
 # --- OS noise ---
 .DS_Store
 Thumbs.db
+
+# WSL metadata junk
+*Zone.Identifier

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "node-red": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "node-red-mcp-server"
+      ],
+      "env": {
+        "NODE_RED_URL": "http://127.0.0.1:1880",
+        "NODE_RED_TOKEN": "${NODE_RED_TOKEN}"
+      }
+    }
+  }
+}
