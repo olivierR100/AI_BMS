@@ -21,13 +21,15 @@ config schema: `docs/BMS_CONFIG_SCHEMA.md`.
 
 Slash commands: `/bms-status`, `/bms-apply <request>`, `/bms-debug <symptom>`, `/bms-simulate <scenario>`.
 
-## In-dashboard AI assistant (Track 2)
-Dashboard page `/dashboard/ai-assistant`: end-user chat → Anthropic Messages API with the
-`apply_bms_config` tool → `BMS.applyConfig`. Key + model in `aiChatSettings` (file-store
-persisted; key deliberately visible/erasable in the UI — erase before transferring).
-Shared prompt builder: global `buildAIPrompt('paste'|'tool')` defined in Initialize System —
-the alignment guidelines live there now; the non-negotiable "never remove them" rule applies
-to that function.
+## In-dashboard AI assistant (Track 2) — multi-provider
+Dashboard page `/dashboard/ai-assistant`: end-user chat → LLM with the `apply_bms_config` tool
+→ `BMS.applyConfig`. Supports **Anthropic / OpenAI / DeepSeek** via a provider-adapter layer in
+Initialize System (`aiProviders`, `aiBuildRequest`, `aiParseResponse`; neutral internal history
+translated per provider — `style: 'anthropic'` vs `'openai'` where DeepSeek reuses the OpenAI
+format). Settings in `aiChatSettings` = `{provider, keys:{...}, models:{...}}` (file-store
+persisted; keys deliberately visible/erasable per-provider in the UI — erase before transferring).
+Shared prompt builder: global `buildAIPrompt('paste'|'tool')` in Initialize System — the
+alignment guidelines live there now; the non-negotiable "never remove them" rule applies to it.
 
 ## Working agreements
 - All point access through the global `BMS` abstraction; config application through `BMS.applyConfig` (single seam, defined in "Initialize System (V12)").

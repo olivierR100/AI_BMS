@@ -140,18 +140,33 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, 83 nodes organized into 10 visual
 ### 3.10 DEVICE MANAGER
 - **Refresh Devices** / **Auto on Boot** → **Build Device Data** → **Device Manager UI** → **Tag Handler**: browse all points, edit tags/zones in `bmsMetadata` at runtime (edits persist to the `file` store).
 
-### 3.11a AI CHAT (Track 2) — in-dashboard assistant
+### 3.11a AI CHAT (Track 2) — in-dashboard assistant, multi-provider
 New dashboard page **AI Assistant** (`/dashboard/ai-assistant`, listed first): chat panel +
-API-settings panel. **Chat UI** → **Chat Orchestrator** (builds Anthropic Messages API request:
-system = `buildAIPrompt('tool')`, history from flow context `chatHistory`, tools =
-`aiChatTools`) → **Call Anthropic API** (http request) → **Process Response** (final text →
-chat; `tool_use` → `BMS.applyConfig` → `tool_result` appended → loops back to the API, max 5
-rounds; apply results shown as chips). **API Key Settings UI** → **Chat Settings Handler**:
-the Anthropic key + model are stored in `aiChatSettings` (persisted to the `file` store,
-**plain text, deliberately visible in the UI** so it gets erased before transfer — use the
-Erase button). The system prompt builder is now the shared global `buildAIPrompt(mode)`
-(`'paste'` = legacy prompt page verbatim incl. alignment guidelines; `'tool'` = same context
-but instructs tool-calling instead of JSON output).
+API-settings panel. **Chat UI** → **Chat Orchestrator** → **Call Anthropic API** (http request,
+`method: use` — the orchestrator sets url/headers/payload per provider) → **Process Response**
+(final text → chat; tool call → `BMS.applyConfig` → result appended → loops back to the API,
+max 5 rounds; apply results shown as chips). **API Key Settings UI** → **Chat Settings Handler**.
+
+**Provider support (anthropic / openai / deepseek):** a provider-adapter layer in Initialize
+System keeps the conversation in a **neutral internal history** and translates per provider at
+request time:
+- `global.aiProviders` — per-provider `{label, style, url, tokenParam, defaultModel, models}`.
+  `style: 'anthropic'` (Messages API, `x-api-key`, `tool_use`/`input_schema`) or `'openai'`
+  (Chat Completions, `Authorization: Bearer`, `tool_calls`/`function`; used by **OpenAI** and
+  **DeepSeek**, which is OpenAI-compatible).
+- `global.aiBuildRequest(history, settings)` → `{url, method, headers, payload}` for the active
+  provider. `global.aiParseResponse(style, statusCode, body)` → `{ok, error, text, toolCalls, stop}`.
+- Neutral history item shapes: `{role:'user', text}` / `{role:'assistant', text, toolCalls:[{id,name,input}]}`
+  / `{role:'tool', results:[{id,name,content}]}`. Switching provider mid-conversation is safe;
+  `chatHistoryV` bumps reset stale history.
+
+**Settings** (`aiChatSettings`, persisted to `file` store): `{ provider, keys:{anthropic,openai,deepseek},
+models:{...} }`. Keys are **plain text and deliberately visible in the UI** (per-provider field +
+eye toggle + per-key and "erase all" buttons) so they get erased before transfer. The settings
+handler migrates the old single-key `{apiKey, model}` shape automatically.
+
+The system prompt builder is the shared global `buildAIPrompt(mode)` (`'paste'` = legacy prompt
+page verbatim incl. alignment guidelines; `'tool'` = same context, tool-calling guidance).
 
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
