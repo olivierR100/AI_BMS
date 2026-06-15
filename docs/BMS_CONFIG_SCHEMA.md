@@ -9,7 +9,7 @@ the dashboard Import Panel, `POST /bms/config`, and the in-dashboard AI Assistan
 | Endpoint | Purpose |
 |---|---|
 | `GET /context` | Full live inventory: `points.{sensors,actuators,weather}` (value, units, min/max, tags, zone), `virtualPoints`, `tags` (with counts), `config` (the four sections currently applied — exact JSON, use for minimal diffs). |
-| `POST /config` | Apply a configuration object (below). Returns `{applied, counts, unknownFacts, errors}`. Unknown facts don't block apply but the rules referencing them never fire — treat as a failure and fix. |
+| `POST /config` | Apply a configuration object (below). Returns `{applied, counts, unknownFacts, errors}`. Unknown facts don't block apply but the rules referencing them never fire — treat as a failure and fix. **`"merge": true`** in the body upserts the list sections by `id` (and appends dashboard widgets) instead of replacing — use it to apply a large config in several smaller calls (e.g. to stay under an LLM's output-token cap). |
 | `GET /firelog` | `rulesLoaded`, per-group rule names + enabled, agents, `fireLog` (per-rule last-fired timestamps), `physics_enabled`. **The verification tool: a config isn't done until its rules appear here and fire.** |
 | `GET /points` | All current fact values (BACnet + virtual + soft states). `?id=x` for one (+metadata), `?tag=x` to filter by tag. |
 | `POST /points` | `{id, value}` writes through the BMS layer (access enforced, min/max clamped). `{id, value, "simulate": true}` overrides any raw sensor value (test scenarios — physics will drift it afterwards). |
@@ -23,6 +23,12 @@ Node-RED environment, requests must send it in the `x-bms-token` header.
 Single JSON object; each section optional — **only present sections are
 replaced** (a section you omit is left untouched; an empty array clears it).
 Applied config persists to disk and survives Node-RED restarts.
+
+**`merge`** (optional boolean): when `true`, `behavior_agents` / `defined_states` /
+`rule_groups` are **upserted by `id`** (existing items with other ids are kept) and
+dashboard widgets are appended — instead of replacing the whole section. This lets a
+large ruleset be applied across several smaller tool calls without dropping earlier
+batches (the workaround for provider output-token limits, e.g. DeepSeek's 8192 cap).
 
 ```json
 {
