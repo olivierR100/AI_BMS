@@ -126,7 +126,7 @@ Data point types (BACnet convention): AI = Analog Input (read-only), BI = Binary
 Input, AO = Analog Output (read-write), BO = Binary Output, AV = Analog Value.
 *(V12.1 models access as `read_only`/`read_write` + units instead of object types.)*
 
-### V5 flow groups *(V12.1 has 10 groups — see handover §3)*
+### V5 flow groups *(V12.1 has 11 groups — see handover §3)*
 
 1. **LOGIC KERNEL** — 1s Heartbeat → Build Facts → JSON Rules Engine → Event Router → State Manager / Group Resolver / Safety Guard. *(Structure survives unchanged into V12.1.)*
 2. **DASHBOARD ENGINE** — Merge Config + Data → Dynamic Widget Renderer (Vue.js) → Filter User Input.
