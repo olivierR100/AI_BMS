@@ -28,7 +28,7 @@ Applied config persists to disk and survives Node-RED restarts.
 `rule_groups` are **upserted by `id`** (existing items with other ids are kept) and
 dashboard widgets are appended — instead of replacing the whole section. This lets a
 large ruleset be applied across several smaller tool calls without dropping earlier
-batches (the workaround for provider output-token limits, e.g. DeepSeek's 8192 cap).
+batches (the workaround for provider output-token limits, e.g. DeepSeek V4's output budget).
 
 ```json
 {
