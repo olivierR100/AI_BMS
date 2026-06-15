@@ -152,6 +152,7 @@ version does not push live messages to these widgets — see the gotcha box). In
   `functionGlobalContext`), runs the `apply_bms_config` tool loop (max 6 rounds), and returns
   `{ok, reply, events[], error}` **in the HTTP response**. The widget renders from that response.
   History persists in flow context `chatHistory`.
+- **Settings**: behind a ⚙ gear (top-right of the chat) — a dialog inside the chat widget, fetch-driven via `GET/POST /bms/chatsettings` (provider, per-provider key, model, DeepSeek reasoning level). The chat is now full-width (the separate settings group was removed).
 - **API log**: the `API Log UI` **polls `GET /bms/apilog`** every ~2.5 s and renders the
   `aiApiLog` ring buffer (expandable rows). A **Clear log** button POSTs `{action:'clear_log'}`;
   the log is also **cleared automatically on New conversation** (`reset_chat`).
