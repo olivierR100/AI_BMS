@@ -90,7 +90,7 @@ node-red
 
 ## 3. Node-RED Flow Architecture (V12.1)
 
-One tab: **"AI BMS V12 (Physics Simulator)"**, 83 nodes organized into 10 visual groups. Names below match the Node-RED UI exactly.
+One tab: **"AI BMS V12 (Physics Simulator)"**, 100 nodes organized into 11 visual groups. Names below match the Node-RED UI exactly.
 
 ### 3.1 Bootstrap (ungrouped)
 - **Boot System** (inject, fires on deploy) → **Initialize System (V12)** (function): defines `bacnetPoints` (86 points, 13 zones incl. External, 3 floors), `bmsMetadata` (tags + zones), `virtualPoints` (17), and the **BMS abstraction layer** (global `BMS` object, incl. `applyConfig`). On boot it restores persisted AI config / tag edits / location from the `file` context store; on redeploy it preserves current runtime values (precedence: defaults < persisted < runtime).
@@ -289,9 +289,10 @@ Dashboard 2.0 (`@flowfuse/node-red-dashboard`), theme "Modern Theme", base "AI B
 
 | Page | Content |
 |---|---|
+| **AI Assistant** (first) | In-dashboard chat (Anthropic/OpenAI/DeepSeek) that applies config via tool-use; API-key settings panel (per-provider, visible/erasable); expandable API Call Log. See §3.11a. |
 | **Control Panel** | Dynamic widgets rendered from `dashboardConfig` (the AI-designed UI). |
-| **AI Configuration** | "Generate Prompt" button + prompt display (copy) + "Import AI Configuration" paste panel. |
-| **Logic Inspector** | Behavior Agents list with live fire stats. |
+| **AI Configuration** | "Generate Prompt" button + prompt display (copy) + "Import AI Configuration" paste panel (the original copy-paste workflow; still works). |
+| **Logic Inspector** | Behavior Agents list with live fire stats + live timer countdowns (§3.6). |
 | **Hardware Simulator** | Manual sensor override sliders/switches. |
 | **Settings** | Location & Weather (lat/lon/city/timezone, OWM status). |
 | **Device Manager** | Point browser + tag/zone editor. |
@@ -375,7 +376,7 @@ Pragmatic path: **A first** (days of work, kills copy-paste immediately), evolvi
 
 | File | Role |
 |---|---|
-| `flows.json` | Complete V12.1 flow (83 nodes, 10 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
+| `flows.json` | Complete V12.1 flow (100 nodes, 11 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
 | `settings.js` | Node-RED config with secrets stripped (functionGlobalContext + contextStorage + adminAuth skeleton). |
 | `handover/AI_BMS_Project_Handover.md` | This document — architecture authority. |
 | `handover/AI_BMS_BOOTSTRAP_PROMPT.md` | First message for a new AI instance taking over. |

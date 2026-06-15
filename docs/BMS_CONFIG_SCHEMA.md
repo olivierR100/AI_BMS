@@ -1,8 +1,8 @@
 # BMS Configuration Schema & API Reference
 
 The contract between any AI tool and the BMS runtime. Same schema everywhere:
-the dashboard Import Panel, `POST /bms/config`, and (future) tool-calling all
-feed `BMS.applyConfig()`.
+the dashboard Import Panel, `POST /bms/config`, and the in-dashboard AI Assistant's
+`apply_bms_config` tool (Anthropic / OpenAI / DeepSeek) all feed `BMS.applyConfig()`.
 
 ## HTTP API (base `http://127.0.0.1:1880/bms`)
 
@@ -13,6 +13,7 @@ feed `BMS.applyConfig()`.
 | `GET /firelog` | `rulesLoaded`, per-group rule names + enabled, agents, `fireLog` (per-rule last-fired timestamps), `physics_enabled`. **The verification tool: a config isn't done until its rules appear here and fire.** |
 | `GET /points` | All current fact values (BACnet + virtual + soft states). `?id=x` for one (+metadata), `?tag=x` to filter by tag. |
 | `POST /points` | `{id, value}` writes through the BMS layer (access enforced, min/max clamped). `{id, value, "simulate": true}` overrides any raw sensor value (test scenarios — physics will drift it afterwards). |
+| `GET /syslog` | Rolling runtime log ring buffer (node warn/error/info from the `bmsRing` logger in settings.js). `?n=` tail count, `?level=warn|error`, `?grep=regex`. Server-side debug aid — **client/browser-widget issues do not appear here.** |
 
 Auth: open on localhost (like the dashboard). If `BMS_API_TOKEN` is set in the
 Node-RED environment, requests must send it in the `x-bms-token` header.

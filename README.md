@@ -1,6 +1,10 @@
 # AI_BMS — AI-Driven Building Management System (Node-RED)
 
-A proof-of-concept BMS where automation logic is configured in **natural language**: an LLM converts user intent into a JSON configuration that is hot-loaded into a Node-RED runtime (rules engine, soft states, dynamic dashboard), simulating a 3-floor office building with 86 BACnet-style data points. Since V12.1 the system also exposes a **BMS HTTP API** so AI tooling (Claude Code) reads context, applies configuration, and verifies rule execution directly — no copy/paste.
+A proof-of-concept BMS where automation logic is configured in **natural language**: an LLM converts user intent into a JSON configuration that is hot-loaded into a Node-RED runtime (rules engine, soft states, dynamic dashboard), simulating a 3-floor office building with 86 BACnet-style data points.
+
+Two ways to drive it without copy/paste:
+- **In-dashboard AI Assistant** (`/dashboard/ai-assistant`): a chat that talks to **Anthropic (Claude), OpenAI (ChatGPT), or DeepSeek** and applies configuration via structured tool-use, with an expandable API call log for monitoring.
+- **BMS HTTP API** (`/bms/*`): lets AI tooling (Claude Code) read live context, apply configuration, verify rule execution, and read runtime logs directly.
 
 ## Start here
 
@@ -17,7 +21,7 @@ A proof-of-concept BMS where automation logic is configured in **natural languag
 
 | Path | Role |
 |---|---|
-| `flows.json` | The complete Node-RED flow — the system itself (tab "AI BMS V12 (Physics Simulator)", 83 nodes / 10 groups incl. the BMS API). |
+| `flows.json` | The complete Node-RED flow — the system itself (tab "AI BMS V12 (Physics Simulator)", 100 nodes / 11 groups incl. the BMS API and the AI chat). |
 | `settings.js` | Node-RED configuration **with secrets stripped** (functionGlobalContext modules, contextStorage persistence, adminAuth skeleton). |
 | `package.json` / `package-lock.json` | npm dependencies of the Node-RED user directory. |
 | `.mcp.json` | Node-RED MCP server configuration for Claude Code (project scope; needs `NODE_RED_TOKEN` env var). |
@@ -41,6 +45,12 @@ node-red
 
 Editor: `http://127.0.0.1:1880` — Dashboard: `http://127.0.0.1:1880/dashboard/`
 
+## The in-dashboard AI Assistant
+
+Open `http://127.0.0.1:1880/dashboard/` → **AI Assistant**. In the API Settings panel pick a provider (Anthropic / OpenAI / DeepSeek), paste that provider's API key, choose a model, Save. Then chat: describe an automation, and on your confirmation ("ready"/"go ahead") the assistant applies it via a structured `apply_bms_config` tool call. The **API Call Log** below the chat shows every request/response (expandable, full bodies; keys never logged).
+
+> Keys are stored in plain text on the machine and shown in the UI **so you remember to erase them before transferring the system** — use the per-key delete or "Erase all keys".
+
 ## The BMS HTTP API (V12.1)
 
 Base `http://127.0.0.1:1880/bms` — full reference in [`docs/BMS_CONFIG_SCHEMA.md`](docs/BMS_CONFIG_SCHEMA.md):
@@ -51,6 +61,7 @@ curl -s -X POST http://127.0.0.1:1880/bms/config -H "Content-Type: application/j
 curl -s http://127.0.0.1:1880/bms/firelog    # are my rules loaded AND firing?
 curl -s "http://127.0.0.1:1880/bms/points?tag=floor1"
 curl -s -X POST http://127.0.0.1:1880/bms/points -d '{"id":"f1_lobby_motion","value":true,"simulate":true}'
+curl -s "http://127.0.0.1:1880/bms/syslog?level=warn&n=50"   # rolling runtime log (server-side debug)
 ```
 
 Open on localhost (like the dashboard); set `BMS_API_TOKEN` in the Node-RED environment to require an `x-bms-token` header.

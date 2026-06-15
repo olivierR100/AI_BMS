@@ -8,7 +8,7 @@ You are taking over an existing, working project: an **AI-driven Building Manage
 ## Before doing anything
 
 1. Read `AI_BMS_Project_Handover.md` in full (architecture authority), then `audit/2026-06-12_audit.md` (current issue list with statuses) and `docs/BMS_CONFIG_SCHEMA.md` (config schema + BMS HTTP API). Do not rely on `docs/AI_BMS_history.md` (V8, historical only).
-2. Inspect the live system: `GET http://127.0.0.1:1880/bms/context` and `/bms/firelog` for the BMS state; MCP tools (`get-flows-formatted`, `list-tabs`, `get-diagnostics`) or the Admin API (`/flows`, Bearer token from `~/.node-red/settings.js`) for the flow. Confirm the running flow matches the repo's `flows.json` (tab "AI BMS V12 (Physics Simulator)", 10 groups, 83 nodes).
+2. Inspect the live system: `GET http://127.0.0.1:1880/bms/context` and `/bms/firelog` for the BMS state; MCP tools (`get-flows-formatted`, `list-tabs`, `get-diagnostics`) or the Admin API (`/flows`, Bearer token from `~/.node-red/settings.js`) for the flow. Confirm the running flow matches the repo's `flows.json` (tab "AI BMS V12 (Physics Simulator)", 11 groups, 100 nodes).
 3. Verify environment prerequisites (handover §2): `functionGlobalContext` exposes `jsonRulesEngine`, `nodeCacheModule`, `suncalcModule` (exact names); `contextStorage` has the memory default + `file` localfilesystem store; Dashboard 2.0 and openweathermap palette nodes installed; OWM API key present in the weather node.
 4. Summarize back: current architecture state, anything diverging from the docs, risks you see. Wait for confirmation before modifying anything.
 
@@ -22,10 +22,15 @@ You are taking over an existing, working project: an **AI-driven Building Manage
 - Dashboard 2.0 Vue patterns: `@end` for v-slider (+ `@start` sets the `editing` guard), `@change` for v-switch; `storeOutMessages` + `passthru` on emitting ui-templates.
 - Keep repo `flows.json`, the live runtime, and the documentation in sync; commit with clear messages.
 
-## Current objectives (this phase)
+## Status & remaining objectives
 
-1. **P2 polish** (see audit): physics dead-band/humidity/timezone, prompt-builder gaps, Vuetify `gap-N`, `tag_create`, redundant Update Time node.
-2. **Main goal — Track 2 (handover §10 Option A):** in-dashboard chat panel calling the Anthropic Messages API; system prompt built programmatically (reuse "Build AI Prompt (Interactive)"), conversation history in flow context, configuration applied via an `apply_bms_config` tool call that feeds `BMS.applyConfig`. Propose an implementation plan before coding. An AJV JSON Schema derived from `docs/BMS_CONFIG_SCHEMA.md` should serve as both the tool contract and apply-time validation.
-3. Keep Option B (full MCP exposure of the BMS) in mind — the `/bms/*` REST endpoints are already its tool set; an MCP wrapper is a thin layer when needed.
+**Done** (see `audit/2026-06-12_audit.md` for the running log): P0/P1 fixes; Track 1 (BMS HTTP API + `/bms-*` slash commands); Track 2 (in-dashboard AI Assistant, multi-provider Anthropic/OpenAI/DeepSeek, tool-use → `BMS.applyConfig`, timeout/cancel/error handling, expandable API call log); Logic Inspector live timer countdowns; `/bms/syslog` runtime log.
+
+**Remaining:**
+1. **P2 polish** (see audit): physics dead-band/humidity/timezone, GPS weather mode, prompt-builder gaps, Vuetify `gap-N`→`ga-N`, `tag_create` persistence, redundant VIRTUAL POINTS "Update Time" node.
+2. **Harden for the demo:** formal AJV validation of `apply_bms_config` input (derive from `docs/BMS_CONFIG_SCHEMA.md`), and a scripted demo scenario.
+3. **Option B (full MCP exposure)** if wanted — the `/bms/*` REST endpoints are already the tool set; an MCP wrapper is a thin layer.
+
+> **ui-template gotchas to respect** (learned the hard way, see handover §3.11): output-wired widgets need `passthru: true` to receive input; keep each ui-template script to a single `export default` (no module-level statements). Client/browser issues won't show in `/bms/syslog` — instrument the widget.
 
 Start with step 1 of "Before doing anything".
