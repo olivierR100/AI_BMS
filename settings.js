@@ -573,7 +573,10 @@ module.exports = {
         jsonRulesEngine: require('json-rules-engine'),
         suncalcModule: require('suncalc'),
         // Shared with the bmsRing logger above — same array reference, read by /bms/syslog
-        sysLogBuffer: (global._bmsSysLog = global._bmsSysLog || [])
+        sysLogBuffer: (global._bmsSysLog = global._bmsSysLog || []),
+        // Node 18+ global fetch, exposed to function nodes (the sandbox hides it). Used by the
+        // synchronous /bms/chat turn handler to call the LLM providers.
+        fetchFn: (function () { return function () { return globalThis.fetch.apply(globalThis, arguments); }; })()
     },
 
     /** The maximum number of messages nodes will buffer internally as part of their

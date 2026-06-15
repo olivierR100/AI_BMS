@@ -90,7 +90,7 @@ node-red
 
 ## 3. Node-RED Flow Architecture (V12.1)
 
-One tab: **"AI BMS V12 (Physics Simulator)"**, 102 nodes organized into 11 visual groups. Names below match the Node-RED UI exactly.
+One tab: **"AI BMS V12 (Physics Simulator)"**, 99 nodes organized into 11 visual groups. Names below match the Node-RED UI exactly.
 
 ### 3.1 Bootstrap (ungrouped)
 - **Boot System** (inject, fires on deploy) → **Initialize System (V12)** (function): defines `bacnetPoints` (86 points, 13 zones incl. External, 3 floors), `bmsMetadata` (tags + zones), `virtualPoints` (17), and the **BMS abstraction layer** (global `BMS` object, incl. `applyConfig`). On boot it restores persisted AI config / tag edits / location from the `file` context store; on redeploy it preserves current runtime values (precedence: defaults < persisted < runtime).
@@ -143,12 +143,27 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, 102 nodes organized into 11 visua
 
 ### 3.11a AI CHAT (Track 2) — in-dashboard assistant, multi-provider
 New dashboard page **AI Assistant** (`/dashboard/ai-assistant`, listed first): chat panel +
-API-settings panel. **Chat UI is receive-only** (displays replies via its `msg` watcher) and
-**sends user input via `fetch('/bms/chat')`** → `API: chat ingress` (`bms_api_fn_chat`) → **Chat
-Orchestrator** → **Call Anthropic API** (http request,
-`method: use` — the orchestrator sets url/headers/payload per provider) → **Process Response**
-(final text → chat; tool call → `BMS.applyConfig` → result appended → loops back to the API,
-max 5 rounds; apply results shown as chips). **API Key Settings UI** → **Chat Settings Handler**.
+API-settings panel + API call log. **Architecture (2026-06-15, final): the whole page is
+fetch-driven — it does NOT use Node-RED server→widget message delivery** (this Dashboard
+version does not push live messages to these widgets — see the gotcha box). Instead:
+- **Chat**: the widget POSTs `fetch('/bms/chat', {action,text})` to **`API: chat turn`**
+  (`bms_api_fn_chat`), a **synchronous** handler that runs the entire turn server-side — it calls
+  the provider via `global.fetchFn` (Node global `fetch`, exposed in settings.js
+  `functionGlobalContext`), runs the `apply_bms_config` tool loop (max 6 rounds), and returns
+  `{ok, reply, events[], error}` **in the HTTP response**. The widget renders from that response.
+  History persists in flow context `chatHistory`.
+- **API log**: the `API Log UI` **polls `GET /bms/apilog`** every ~2.5 s and renders the
+  `aiApiLog` ring buffer (expandable rows). A **Clear log** button POSTs `{action:'clear_log'}`;
+  the log is also **cleared automatically on New conversation** (`reset_chat`).
+- Actions on `POST /bms/chat`: `user_message` (runs a turn), `reset_chat` (clears history + log),
+  `clear_log` (clears log), `cancel_chat` (client aborts the fetch).
+
+> Historical note: an earlier async design (Chat Orchestrator → Call API → Process Response with
+> socket replies) was removed because server→widget delivery never reached these widgets.
+
+The **API Key Settings UI** → **Chat Settings Handler** manages keys/model/provider (it sends via
+`this.send`, which works; it also reads on load, which — being subject to the same push limitation —
+is best-effort; you can always re-select and Save).
 
 **Provider support (anthropic / openai / deepseek):** a provider-adapter layer in Initialize
 System keeps the conversation in a **neutral internal history** and translates per provider at
@@ -222,6 +237,8 @@ Five `http-in` → function → shared `http response` chains on `http://127.0.0
 | `GET /bms/firelog` | Loaded rules/agents + per-rule fire timestamps — the verification endpoint. |
 | `GET /bms/points` | All fact values incl. soft states (`?id=`, `?tag=` filters). |
 | `POST /bms/points` | `{id, value}` through the BMS layer (access + clamping); `{id, value, "simulate": true}` raw sensor override for scenario testing. |
+| `POST /bms/chat` | In-dashboard assistant turn (synchronous). Body `{action, text}`: `user_message` runs a full turn (provider + tool loop) and returns `{ok,reply,events,error}`; `reset_chat` clears history + API log; `clear_log`; `cancel_chat`. |
+| `GET /bms/apilog` | The structured API call log (`aiApiLog`) for the dashboard log panel (which polls it). `?n=`. |
 | `GET /bms/syslog` | Rolling runtime log ring buffer (node warn/error/info), captured by the `bmsRing` custom logger in settings.js (shared array via `functionGlobalContext.sysLogBuffer`). Query `?n=`, `?level=warn|error`, `?grep=regex`. Curlable server-side debug aid. NB: client-side (browser widget) issues do NOT appear here — those need in-widget instrumentation. |
 
 ---
@@ -391,7 +408,7 @@ Pragmatic path: **A first** (days of work, kills copy-paste immediately), evolvi
 
 | File | Role |
 |---|---|
-| `flows.json` | Complete V12.1 flow (102 nodes, 11 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
+| `flows.json` | Complete V12.1 flow (99 nodes, 11 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
 | `settings.js` | Node-RED config with secrets stripped (functionGlobalContext + contextStorage + adminAuth skeleton). |
 | `handover/AI_BMS_Project_Handover.md` | This document — architecture authority. |
 | `handover/AI_BMS_BOOTSTRAP_PROMPT.md` | First message for a new AI instance taking over. |
