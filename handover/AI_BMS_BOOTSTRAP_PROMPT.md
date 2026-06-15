@@ -8,7 +8,7 @@ You are taking over an existing, working project: an **AI-driven Building Manage
 ## Before doing anything
 
 1. Read `AI_BMS_Project_Handover.md` in full (architecture authority), then `audit/2026-06-12_audit.md` (current issue list with statuses) and `docs/BMS_CONFIG_SCHEMA.md` (config schema + BMS HTTP API). Do not rely on `docs/AI_BMS_history.md` (V8, historical only).
-2. Inspect the live system: `GET http://127.0.0.1:1880/bms/context` and `/bms/firelog` for the BMS state; MCP tools (`get-flows-formatted`, `list-tabs`, `get-diagnostics`) or the Admin API (`/flows`, Bearer token from `~/.node-red/settings.js`) for the flow. Confirm the running flow matches the repo's `flows.json` (tab "AI BMS V12 (Physics Simulator)", 11 groups, 100 nodes).
+2. Inspect the live system: `GET http://127.0.0.1:1880/bms/context` and `/bms/firelog` for the BMS state; MCP tools (`get-flows-formatted`, `list-tabs`, `get-diagnostics`) or the Admin API (`/flows`, Bearer token from `~/.node-red/settings.js`) for the flow. Confirm the running flow matches the repo's `flows.json` (tab "AI BMS V12 (Physics Simulator)", 11 groups, 102 nodes).
 3. Verify environment prerequisites (handover §2): `functionGlobalContext` exposes `jsonRulesEngine`, `nodeCacheModule`, `suncalcModule` (exact names); `contextStorage` has the memory default + `file` localfilesystem store; Dashboard 2.0 and openweathermap palette nodes installed; OWM API key present in the weather node.
 4. Summarize back: current architecture state, anything diverging from the docs, risks you see. Wait for confirmation before modifying anything.
 

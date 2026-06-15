@@ -90,7 +90,7 @@ node-red
 
 ## 3. Node-RED Flow Architecture (V12.1)
 
-One tab: **"AI BMS V12 (Physics Simulator)"**, 100 nodes organized into 11 visual groups. Names below match the Node-RED UI exactly.
+One tab: **"AI BMS V12 (Physics Simulator)"**, 102 nodes organized into 11 visual groups. Names below match the Node-RED UI exactly.
 
 ### 3.1 Bootstrap (ungrouped)
 - **Boot System** (inject, fires on deploy) → **Initialize System (V12)** (function): defines `bacnetPoints` (86 points, 13 zones incl. External, 3 floors), `bmsMetadata` (tags + zones), `virtualPoints` (17), and the **BMS abstraction layer** (global `BMS` object, incl. `applyConfig`). On boot it restores persisted AI config / tag edits / location from the `file` context store; on redeploy it preserves current runtime values (precedence: defaults < persisted < runtime).
@@ -143,7 +143,9 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, 100 nodes organized into 11 visua
 
 ### 3.11a AI CHAT (Track 2) — in-dashboard assistant, multi-provider
 New dashboard page **AI Assistant** (`/dashboard/ai-assistant`, listed first): chat panel +
-API-settings panel. **Chat UI** → **Chat Orchestrator** → **Call Anthropic API** (http request,
+API-settings panel. **Chat UI is receive-only** (displays replies via its `msg` watcher) and
+**sends user input via `fetch('/bms/chat')`** → `API: chat ingress` (`bms_api_fn_chat`) → **Chat
+Orchestrator** → **Call Anthropic API** (http request,
 `method: use` — the orchestrator sets url/headers/payload per provider) → **Process Response**
 (final text → chat; tool call → `BMS.applyConfig` → result appended → loops back to the API,
 max 5 rounds; apply results shown as chips). **API Key Settings UI** → **Chat Settings Handler**.
@@ -184,17 +186,19 @@ body (url, model, tools, messages — long content truncated by `aiLogTrim`, sys
 or full response body. **API keys are never logged** (they live in headers, which are not recorded).
 Orchestrator, Process Response, and the error handler all feed it (output 3 → log template).
 
-> **ui-template reception gotcha (2026-06-15) — the real one:** in Dashboard 2.0 (1.30.0) an
-> **output-wired ui-template must have `passthru: true` to receive input messages at all**. With
-> `passthru: false` and an output connected, incoming messages are dropped — the widget's `msg`
-> watcher never fires (diagnosed with an in-widget `rx` counter that stayed at 0 while the reply
-> was confirmed delivered to the node). This is why the chat stuck on "thinking": server applied
-> the config, but the widget never received the reply. Every working interactive widget (Renderer,
-> Simulator, Device Manager, Location, Import) has `passthru: true`; the chat widgets were the
-> only output-wired ones set to false. Receive-only widgets (Inspector, Prompt Display, API Log)
-> are unaffected. Caveat: `passthru: true` forwards received messages to the widget's output too —
-> handlers downstream of an emitting widget must ignore unexpected/echoed topics (the settings
-> handler returns null for anything but its request topics to avoid a feedback loop).
+> **ui-template reception gotcha (2026-06-15) — the real, confirmed cause:** in Dashboard 2.0
+> (1.30.0) **an output-wired ui-template can _send_ (`this.send`) but does not receive live input
+> messages** — its `msg` watcher fires once at mount (with an empty msg) and never again, whatever
+> `passthru` is. Proven with in-widget telemetry (`CHATDBG`): the chat sent fine (REQUEST logged)
+> but no `rx` event with a real topic ever arrived after a reply, while the receive-only API Log
+> widget updated normally. This is why the chat stuck on "thinking": the server applied configs and
+> logged replies, but the widget never received them (only the 75 s watchdog cleared the spinner).
+> **Resolution: the chat widget is receive-only (no output wire) like the working log/inspector
+> widgets, and sends user input out-of-band via `fetch('/bms/chat', …)`** (the `bms_api_fn_chat`
+> ingress injects the message into the orchestrator). Lesson: in this Dashboard version, a widget
+> that must both display server-pushed data AND collect user input should receive via the `msg`
+> watcher and send via `fetch` to an HTTP endpoint — do not rely on a Node-RED output wire for a
+> widget that also needs to receive.
 
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
@@ -376,7 +380,7 @@ Pragmatic path: **A first** (days of work, kills copy-paste immediately), evolvi
 
 | File | Role |
 |---|---|
-| `flows.json` | Complete V12.1 flow (100 nodes, 11 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
+| `flows.json` | Complete V12.1 flow (102 nodes, 11 groups) — the system itself. Source of truth, kept in sync with the live runtime. |
 | `settings.js` | Node-RED config with secrets stripped (functionGlobalContext + contextStorage + adminAuth skeleton). |
 | `handover/AI_BMS_Project_Handover.md` | This document — architecture authority. |
 | `handover/AI_BMS_BOOTSTRAP_PROMPT.md` | First message for a new AI instance taking over. |

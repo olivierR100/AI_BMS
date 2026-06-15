@@ -21,7 +21,7 @@ Two ways to drive it without copy/paste:
 
 | Path | Role |
 |---|---|
-| `flows.json` | The complete Node-RED flow — the system itself (tab "AI BMS V12 (Physics Simulator)", 100 nodes / 11 groups incl. the BMS API and the AI chat). |
+| `flows.json` | The complete Node-RED flow — the system itself (tab "AI BMS V12 (Physics Simulator)", 102 nodes / 11 groups incl. the BMS API and the AI chat). |
 | `settings.js` | Node-RED configuration **with secrets stripped** (functionGlobalContext modules, contextStorage persistence, adminAuth skeleton). |
 | `package.json` / `package-lock.json` | npm dependencies of the Node-RED user directory. |
 | `.mcp.json` | Node-RED MCP server configuration for Claude Code (project scope; needs `NODE_RED_TOKEN` env var). |
