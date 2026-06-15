@@ -168,6 +168,19 @@ handler migrates the old single-key `{apiKey, model}` shape automatically.
 The system prompt builder is the shared global `buildAIPrompt(mode)` (`'paste'` = legacy prompt
 page verbatim incl. alignment guidelines; `'tool'` = same context, tool-calling guidance).
 
+**Reliability (added 2026-06-15):** the `Call Anthropic API` http-request node has a **60 s
+timeout** and a **Catch node** (`Catch API errors` → `Chat Error Handler`) — transport errors
+and timeouts (which an http-request node does NOT pass to its own output) are otherwise swallowed
+and leave the chat stuck on "thinking" (this was the DeepSeek symptom). HTTP error *statuses*
+(401/400/429…) come back as normal messages and are surfaced by `aiParseResponse`. The Chat UI
+also has a **Cancel** button and a 75 s client-side watchdog so it can never stay stuck
+regardless of backend, and ignores a late reply arriving after Cancel.
+
+**API Call Log** (`API Log UI` template, group "API Call Log", below the chat): `global.aiLog(line)`
+keeps a ~1 MB ring buffer (`aiApiLog`) of request/response/error lines (provider, model, url,
+status, stop reason, token usage, errors) — **API keys are never logged**. Orchestrator,
+Process Response, and the error handler all feed it (output 3 → log template).
+
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
 (open on localhost like the dashboard; set `BMS_API_TOKEN` env var to require an
