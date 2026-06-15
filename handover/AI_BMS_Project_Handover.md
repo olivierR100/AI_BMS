@@ -153,12 +153,17 @@ max 5 rounds; apply results shown as chips). **API Key Settings UI** → **Chat 
 **Provider support (anthropic / openai / deepseek):** a provider-adapter layer in Initialize
 System keeps the conversation in a **neutral internal history** and translates per provider at
 request time:
-- `global.aiProviders` — per-provider `{label, style, url, tokenParam, defaultModel, models}`.
+- `global.aiProviders` — per-provider `{label, style, url, tokenParam, maxTokens, defaultModel, models}`.
   `style: 'anthropic'` (Messages API, `x-api-key`, `tool_use`/`input_schema`) or `'openai'`
   (Chat Completions, `Authorization: Bearer`, `tool_calls`/`function`; used by **OpenAI** and
-  **DeepSeek**, which is OpenAI-compatible).
+  **DeepSeek**, which is OpenAI-compatible). `maxTokens` is the output-token cap WE set per
+  provider: anthropic/openai 16384, **deepseek 8192 (its hard ceiling — a very large ruleset can
+  truncate there; use Anthropic/OpenAI for big configs, or apply in parts)**.
 - `global.aiBuildRequest(history, settings)` → `{url, method, headers, payload}` for the active
-  provider. `global.aiParseResponse(style, statusCode, body)` → `{ok, error, text, toolCalls, stop}`.
+  provider. `global.aiParseResponse(style, statusCode, body)` → `{ok, error, text, toolCalls, stop, truncated, usage}`.
+  **`truncated`** is true when the model hit `maxTokens` (`finish_reason:length` / `stop_reason:max_tokens`);
+  Process Response then surfaces a warning and, for a tool call, **discards the partial config (never
+  applies a truncated ruleset)**.
 - Neutral history item shapes: `{role:'user', text}` / `{role:'assistant', text, toolCalls:[{id,name,input}]}`
   / `{role:'tool', results:[{id,name,content}]}`. Switching provider mid-conversation is safe;
   `chatHistoryV` bumps reset stale history.
@@ -170,6 +175,12 @@ handler migrates the old single-key `{apiKey, model}` shape automatically.
 
 The system prompt builder is the shared global `buildAIPrompt(mode)` (`'paste'` = legacy prompt
 page verbatim incl. alignment guidelines; `'tool'` = same context, tool-calling guidance).
+
+**Conversation control:** the chat continues the existing thread by default (history in flow
+context `chatHistory`); a **New conversation** button (header) clears the server history so the
+next message reaches the model with only the freshly-rebuilt system prompt (instructions +
+current config state) and no prior turns — i.e. a genuinely new conversation. A header chip shows
+"new conversation" vs "continuing · N msgs".
 
 **Reliability (added 2026-06-15):** the `Call Anthropic API` http-request node has a **60 s
 timeout** and a **Catch node** (`Catch API errors` → `Chat Error Handler`) — transport errors
