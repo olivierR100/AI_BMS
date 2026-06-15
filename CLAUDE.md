@@ -18,6 +18,7 @@ config schema: `docs/BMS_CONFIG_SCHEMA.md`.
 - `POST /config` — apply config; response reports `unknownFacts` (fix them, they mean dead rules)
 - `GET /firelog` — verify rules load AND fire (never declare success on apply alone)
 - `GET/POST /points` — read facts; write via BMS layer; `"simulate": true` overrides raw sensors
+- `GET /syslog` — rolling runtime log (node warn/error/info); `?n=`, `?level=`, `?grep=` (server-side debug aid; not browser/client issues)
 
 Slash commands: `/bms-status`, `/bms-apply <request>`, `/bms-debug <symptom>`, `/bms-simulate <scenario>`.
 

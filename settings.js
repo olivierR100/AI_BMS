@@ -353,6 +353,25 @@ module.exports = {
             metrics: false,
             /** Whether or not to include audit events in the log output */
             audit: false
+        },
+        /** Custom logger: keeps a rolling in-memory ring buffer of runtime log
+         * events (node warn/error/info), exposed to function nodes via
+         * functionGlobalContext.sysLogBuffer and read over HTTP at /bms/syslog. */
+        bmsRing: {
+            level: "info", metrics: false, audit: false,
+            handler: function (conf) {
+                const lvl = { 10: 'fatal', 20: 'error', 30: 'warn', 40: 'info', 50: 'debug', 60: 'trace', 98: 'audit', 99: 'metric' };
+                global._bmsSysLog = global._bmsSysLog || [];
+                return function (msg) {
+                    try {
+                        const buf = global._bmsSysLog;
+                        let m = msg.msg;
+                        if (typeof m === 'object') { try { m = JSON.stringify(m); } catch (e) { m = String(m); } }
+                        buf.push({ t: new Date().toISOString().slice(11, 23), lvl: lvl[msg.level] || String(msg.level), msg: String(m).slice(0, 800), name: msg.name || '', type: msg.type || '' });
+                        if (buf.length > 3000) buf.shift();
+                    } catch (e) { /* never let logging throw */ }
+                };
+            }
         }
     },
 
@@ -552,7 +571,9 @@ module.exports = {
         // os:require('os'),
         nodeCacheModule: require('node-cache'),
         jsonRulesEngine: require('json-rules-engine'),
-        suncalcModule: require('suncalc')
+        suncalcModule: require('suncalc'),
+        // Shared with the bmsRing logger above — same array reference, read by /bms/syslog
+        sysLogBuffer: (global._bmsSysLog = global._bmsSysLog || [])
     },
 
     /** The maximum number of messages nodes will buffer internally as part of their

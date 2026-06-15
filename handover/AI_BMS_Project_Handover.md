@@ -184,11 +184,17 @@ body (url, model, tools, messages — long content truncated by `aiLogTrim`, sys
 or full response body. **API keys are never logged** (they live in headers, which are not recorded).
 Orchestrator, Process Response, and the error handler all feed it (output 3 → log template).
 
-> **ui-template reactivity gotcha (2026-06-15):** a widget whose `<template>` never references `msg`
-> (the chat renders `messages`/`thinking`, not `msg`) must set `immediate: true` on its `msg` watcher —
-> otherwise Vue never establishes the reactive dependency and the watcher never fires on incoming
-> messages (symptom: the chat received replies server-side but stayed stuck on "thinking"). The API
-> Log widget worked only because it already had `immediate: true`.
+> **ui-template reception gotcha (2026-06-15) — the real one:** in Dashboard 2.0 (1.30.0) an
+> **output-wired ui-template must have `passthru: true` to receive input messages at all**. With
+> `passthru: false` and an output connected, incoming messages are dropped — the widget's `msg`
+> watcher never fires (diagnosed with an in-widget `rx` counter that stayed at 0 while the reply
+> was confirmed delivered to the node). This is why the chat stuck on "thinking": server applied
+> the config, but the widget never received the reply. Every working interactive widget (Renderer,
+> Simulator, Device Manager, Location, Import) has `passthru: true`; the chat widgets were the
+> only output-wired ones set to false. Receive-only widgets (Inspector, Prompt Display, API Log)
+> are unaffected. Caveat: `passthru: true` forwards received messages to the widget's output too —
+> handlers downstream of an emitting widget must ignore unexpected/echoed topics (the settings
+> handler returns null for anything but its request topics to avoid a feedback loop).
 
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
@@ -201,6 +207,7 @@ Five `http-in` → function → shared `http response` chains on `http://127.0.0
 | `GET /bms/firelog` | Loaded rules/agents + per-rule fire timestamps — the verification endpoint. |
 | `GET /bms/points` | All fact values incl. soft states (`?id=`, `?tag=` filters). |
 | `POST /bms/points` | `{id, value}` through the BMS layer (access + clamping); `{id, value, "simulate": true}` raw sensor override for scenario testing. |
+| `GET /bms/syslog` | Rolling runtime log ring buffer (node warn/error/info), captured by the `bmsRing` custom logger in settings.js (shared array via `functionGlobalContext.sysLogBuffer`). Query `?n=`, `?level=warn|error`, `?grep=regex`. Curlable server-side debug aid. NB: client-side (browser widget) issues do NOT appear here — those need in-widget instrumentation. |
 
 ---
 
