@@ -104,6 +104,12 @@ De-escalation thresholds need a gap (up at 1200, down at 1100).
     { "fact": "glob_time_minute_of_week", "operator": "greaterThanFact", "value": "st_room_timer" } ]},
   "event": { "type": "control_device", "params": { "id": "room_lamp", "value": false } } }
 ```
+A timer state holds an **absolute expiry** (a minute-of-week value), not a remaining
+duration. The Logic Inspector auto-detects any state written this way (set_state from
+`glob_time_minute_of_week`) and shows it as a **live countdown** (recomputed each 2 s
+snapshot, so a re-trigger that bumps the target refreshes the countdown). Edge case: a
+timer set within ~`add` minutes of the Sunday→Monday week rollover won't count down
+correctly (minute-of-week wraps to 0) — irrelevant for typical minute/hour BMS timers.
 
 **Business hours:** `glob_time_day` `in [1,2,3,4,5]` (Mon=1…Sun=7) +
 `glob_time_minutes` range (480 = 08:00, 1140 = 19:00).

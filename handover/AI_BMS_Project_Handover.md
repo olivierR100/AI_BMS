@@ -125,7 +125,8 @@ One tab: **"AI BMS V12 (Physics Simulator)"**, 83 nodes organized into 10 visual
 - **Import Panel** (ui-template) → **Parse & Apply** (function): the defense layer — strips CRLF, comments, trailing commas, non-breaking spaces and smart quotes; extracts JSON from ```` ```json ```` fences or brace-matching; applies each present section (`behavior_agents`, `rule_groups`, `defined_states`, `dashboard`) to global context; emits a **Toast** (ui-notification) with a summary or error.
 
 ### 3.6 BEHAVIOR AGENTS UI (Logic Inspector)
-- **Refresh** (button) + **Auto** (inject) → **Build View** → **Inspector** (ui-template): lists agents/rule groups with enable state, categories, and fire counts from `ruleFireLog` — proof that the AI's logic actually loaded and runs.
+- **Refresh** (button) + **Auto** (inject, 2 s) → **Build View** → **Inspector** (ui-template): lists agents/rule groups with enable state, categories, and fire counts from `ruleFireLog` — proof that the AI's logic actually loaded and runs.
+- **Timer countdown (2026-06-15):** Build View detects timer states structurally (any state written via `set_state` from `glob_time_minute_of_week`) and computes `remainingSeconds`; the Inspector renders a **live countdown** that ticks locally every 1 s and re-anchors on each 2 s snapshot, so timer resets refresh automatically. The same 1 s ticker makes the "last fired N s ago" labels update live (was the stale-time P2 item).
 
 ### 3.7 HARDWARE SIMULATOR
 - **Refresh** / **Auto** → **Build UI** → **Simulator UI** (ui-template) → **Write**: manual override of any sensor value (writes into `bacnetPoints` directly, bypassing access control since it *is* the simulated hardware).
