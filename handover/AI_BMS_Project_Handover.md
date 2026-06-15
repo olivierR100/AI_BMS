@@ -177,10 +177,18 @@ and leave the chat stuck on "thinking" (this was the DeepSeek symptom). HTTP err
 also has a **Cancel** button and a 75 s client-side watchdog so it can never stay stuck
 regardless of backend, and ignores a late reply arriving after Cancel.
 
-**API Call Log** (`API Log UI` template, group "API Call Log", below the chat): `global.aiLog(line)`
-keeps a ~1 MB ring buffer (`aiApiLog`) of request/response/error lines (provider, model, url,
-status, stop reason, token usage, errors) — **API keys are never logged**. Orchestrator,
-Process Response, and the error handler all feed it (output 3 → log template).
+**API Call Log** (`API Log UI` template, group "API Call Log", below the chat): `global.aiLog(kind, summary, detail)`
+keeps a ~1 MB structured ring buffer (`aiApiLog` = array of `{ts, kind, summary, detail}`). Rows are
+**click-to-expand**: the summary shows provider/model/status/tokens; the detail shows the full request
+body (url, model, tools, messages — long content truncated by `aiLogTrim`, system prompt to 1500 chars)
+or full response body. **API keys are never logged** (they live in headers, which are not recorded).
+Orchestrator, Process Response, and the error handler all feed it (output 3 → log template).
+
+> **ui-template reactivity gotcha (2026-06-15):** a widget whose `<template>` never references `msg`
+> (the chat renders `messages`/`thinking`, not `msg`) must set `immediate: true` on its `msg` watcher —
+> otherwise Vue never establishes the reactive dependency and the watcher never fires on incoming
+> messages (symptom: the chat received replies server-side but stayed stuck on "thinking"). The API
+> Log widget worked only because it already had `immediate: true`.
 
 ### 3.11 BMS API (Track 1) — HTTP endpoints for AI tooling
 Five `http-in` → function → shared `http response` chains on `http://127.0.0.1:1880/bms`
