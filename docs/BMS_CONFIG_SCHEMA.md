@@ -62,8 +62,13 @@ All `behavior_agents` fields are required. All `defined_states` fields except
 - Standard: `equal`, `notEqual`, `lessThan`, `lessThanInclusive`,
   `greaterThan`, `greaterThanInclusive`, `in`, `notIn` (arrays)
 - Fact-to-fact (compare against another fact's live value, put its id in
-  `value`): `lessThanFact`, `greaterThanFact`, `equalFact`,
+  `value`): `lessThanFact`, `greaterThanFact`, `equalFact`, `notEqualFact`,
   `lessThanInclusiveFact`, `greaterThanInclusiveFact`
+- **Deadband / offset**: in any `*Fact` operator, `value` may be
+  `{ fact, add? | subtract? | multiply? | divide? }` to compare against another
+  fact ± an offset in a single condition (no extra state needed), e.g.
+  `{ "fact": "f1_lobby_temp", "operator": "greaterThanFact", "value": { "fact": "glob_comfort_sp", "add": 2 } }`
+  (temp > setpoint + 2°C).
 
 ### Event types
 1. `control_device` — `params: { id, value }` or `{ id, value_from_fact: "fact_id" }`
@@ -73,6 +78,11 @@ All `behavior_agents` fields are required. All `defined_states` fields except
 3. `set_state` — `{ id, value }`, `{ id, value_from_fact }`, or
    `{ id, value_expr: { fact, add?, subtract?, multiply?, divide?, min?, max?, round? } }`
    (`round`: `true` | `"floor"` | `"ceil"`); optional `ttl` (seconds) overrides the state's registry TTL.
+   Every arithmetic operand has a `*_from_fact` twin (`add_from_fact`,
+   `subtract_from_fact`, `multiply_from_fact`, `divide_from_fact`, `min_from_fact`,
+   `max_from_fact`) that pulls its value from a fact/state id instead of a constant —
+   so timeouts, limits and gains can be driven by a configurable state. Constant wins
+   if both are set for one operand.
 
 ### Widget types (dashboard.widgets, nestable via group/section)
 - `group` — collapsible: `{ type, id, label, icon?, color?, badge?, widgets }`
@@ -84,6 +94,10 @@ All `behavior_agents` fields are required. All `defined_states` fields except
 - `switch` — `{ type, label, bind, onLabel?, offLabel?, color? }`
 - `button` — `{ type, label, bind, value, buttonLabel?, icon?, color? }`
 - `select` — `{ type, label, bind, options: [{label, value}] }`
+- **`also_set`** — any control widget may add `also_set: [{ id, value }, …]` to write
+  companion points together with its own write (e.g. a setpoint slider that also raises
+  a `st_manual_override` flag the rules check).
+- `group`/`section` nest **arbitrarily** (group→section→group…); leaf widgets render at any depth.
 
 ## Critical patterns (the engine re-evaluates EVERY SECOND — design for it)
 
@@ -99,30 +113,31 @@ transitioning**, otherwise the rule fires every tick:
 ```
 De-escalation thresholds need a gap (up at 1200, down at 1100).
 
-**Timers — use `glob_time_minute_of_week` with `value_expr`:**
+**Timers — use `glob_time_epoch_min` (monotonic, wrap-safe) with `value_expr`:**
 ```json
 { "name": "motion resets 5-min timer",
   "conditions": { "all": [{ "fact": "room_motion", "operator": "equal", "value": true }] },
   "event": { "type": "set_state", "params": { "id": "st_room_timer",
-             "value_expr": { "fact": "glob_time_minute_of_week", "add": 5 } } } },
+             "value_expr": { "fact": "glob_time_epoch_min", "add": 5 } } } },
 { "name": "timer expired -> off",
   "conditions": { "all": [
     { "fact": "st_room_timer", "operator": "greaterThan", "value": 0 },
-    { "fact": "glob_time_minute_of_week", "operator": "greaterThanFact", "value": "st_room_timer" } ]},
+    { "fact": "glob_time_epoch_min", "operator": "greaterThanFact", "value": "st_room_timer" } ]},
   "event": { "type": "control_device", "params": { "id": "room_lamp", "value": false } } }
 ```
-A timer state holds an **absolute expiry** (a minute-of-week value), not a remaining
-duration. The Logic Inspector auto-detects any state written this way (set_state from
-`glob_time_minute_of_week`) and shows it as a **live countdown** (recomputed each 2 s
-snapshot, so a re-trigger that bumps the target refreshes the countdown). Edge case: a
-timer set within ~`add` minutes of the Sunday→Monday week rollover won't count down
-correctly (minute-of-week wraps to 0) — irrelevant for typical minute/hour BMS timers.
+A timer state holds an **absolute expiry** (an epoch-minute value), not a remaining
+duration. Make the duration configurable with `add_from_fact: "st_timeout_min"` instead
+of `add: 5`. The Logic Inspector auto-detects any state written this way (set_state from
+`glob_time_epoch_min` or `glob_time_minute_of_week`) and shows it as a **live countdown**
+(recomputed each 2 s snapshot, so a re-trigger that bumps the target refreshes it).
+Prefer `glob_time_epoch_min`: `glob_time_minute_of_week` wraps to 0 at the Sunday→Monday
+rollover, so a timer straddling it expires early or never.
 
 **Business hours:** `glob_time_day` `in [1,2,3,4,5]` (Mon=1…Sun=7) +
 `glob_time_minutes` range (480 = 08:00, 1140 = 19:00).
 
 ## Conventions
 - Point ids: `{floor}_{room}_{function}` (e.g. `f2_off1_temp_setpoint`); globals `glob_*`; sun `sun_*`; location `loc_*`; soft states `st_*`; rule groups `rg_*`; agents `agent_*`.
-- Time facts: `glob_time_hour`, `glob_time_minutes` (since midnight), `glob_time_day`, `glob_time_minute_of_week`. Sun: `sun_altitude`, `sun_azimuth` (degrees), `sun_is_daylight`, `sun_sunrise_minutes`, `sun_sunset_minutes`.
+- Time facts: `glob_time_hour`, `glob_time_minutes` (since midnight), `glob_time_day`, `glob_time_minute_of_week`, `glob_time_epoch_min` (monotonic epoch minutes — use for timers). Sun: `sun_altitude`, `sun_azimuth` (degrees), `sun_is_daylight`, `sun_sunrise_minutes`, `sun_sunset_minutes`.
 - Rule priorities: higher number runs first.
 - Get exact live ids/tags from `GET /bms/context` — never guess; unknown facts make dead rules.
