@@ -177,8 +177,7 @@ request time:
 - `global.aiProviders` — per-provider `{label, style, url, tokenParam, maxTokens, defaultModel, models}`.
   `style: 'anthropic'` (Messages API, `x-api-key`, `tool_use`/`input_schema`) or `'openai'`
   (Chat Completions, `Authorization: Bearer`, `tool_calls`/`function`; used by **OpenAI** and
-  **DeepSeek**, which is OpenAI-compatible). `maxTokens` is the output-token cap WE set per
-  provider: anthropic/openai 16384, **deepseek 8192 (its hard ceiling — a very large ruleset can
+  **DeepSeek**, which is OpenAI-compatible). `maxTokens` is the output cap WE request per provider — set to let each model deliver its full capacity: anthropic 64000, deepseek 65536, and openai/mistral use `null` (the param is omitted so the provider applies the model's own maximum). DeepSeek must be set explicitly because it defaults to 4096 when unset; Anthropic requires the param.
   truncate there; use Anthropic/OpenAI for big configs, or apply in parts)**.
 - `global.aiBuildRequest(history, settings)` → `{url, method, headers, payload}` for the active
   provider. `global.aiParseResponse(style, statusCode, body)` → `{ok, error, text, toolCalls, stop, truncated, usage}`.
