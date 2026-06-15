@@ -3,7 +3,7 @@
 A proof-of-concept BMS where automation logic is configured in **natural language**: an LLM converts user intent into a JSON configuration that is hot-loaded into a Node-RED runtime (rules engine, soft states, dynamic dashboard), simulating a 3-floor office building with 86 BACnet-style data points.
 
 Two ways to drive it without copy/paste:
-- **In-dashboard AI Assistant** (`/dashboard/ai-assistant`): a chat that talks to **Anthropic (Claude), OpenAI (ChatGPT), or DeepSeek** and applies configuration via structured tool-use, with an expandable API call log for monitoring.
+- **In-dashboard AI Assistant** (`/dashboard/ai-assistant`): a chat that talks to **Anthropic (Claude), OpenAI (ChatGPT), DeepSeek (V4), or Mistral** and applies configuration via structured tool-use, with an expandable API call log for monitoring.
 - **BMS HTTP API** (`/bms/*`): lets AI tooling (Claude Code) read live context, apply configuration, verify rule execution, and read runtime logs directly.
 
 ## Start here

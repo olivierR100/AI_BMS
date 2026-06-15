@@ -170,9 +170,10 @@ The **API Key Settings UI** → **Chat Settings Handler** manages keys/model/pro
 `this.send`, which works; it also reads on load, which — being subject to the same push limitation —
 is best-effort; you can always re-select and Save).
 
-**Provider support (anthropic / openai / deepseek):** a provider-adapter layer in Initialize
+**Provider support (anthropic / openai / deepseek / mistral):** a provider-adapter layer in Initialize
 System keeps the conversation in a **neutral internal history** and translates per provider at
 request time:
+- **Prompt caching:** Anthropic gets explicit `cache_control:ephemeral` on the static system-prompt prefix (everything before CURRENT SYSTEM STATE) — big input-token/rate-limit saving on multi-pass turns. OpenAI, DeepSeek and Mistral auto-cache (cached tokens surfaced in the log as `cached in=N`). **Mistral** (`api.mistral.ai/v1`) uses the OpenAI-compatible adapter (tool calling included).
 - `global.aiProviders` — per-provider `{label, style, url, tokenParam, maxTokens, defaultModel, models}`.
   `style: 'anthropic'` (Messages API, `x-api-key`, `tool_use`/`input_schema`) or `'openai'`
   (Chat Completions, `Authorization: Bearer`, `tool_calls`/`function`; used by **OpenAI** and
