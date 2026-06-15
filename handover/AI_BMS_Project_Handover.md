@@ -146,11 +146,15 @@ New dashboard page **AI Assistant** (`/dashboard/ai-assistant`, listed first): c
 API-settings panel + API call log. **Architecture (2026-06-15, final): the whole page is
 fetch-driven — it does NOT use Node-RED server→widget message delivery** (this Dashboard
 version does not push live messages to these widgets — see the gotcha box). Instead:
-- **Chat**: the widget POSTs `fetch('/bms/chat', {action,text})` to **`API: chat turn`**
-  (`bms_api_fn_chat`), a **synchronous** handler that runs the entire turn server-side — it calls
-  the provider via `global.fetchFn` (Node global `fetch`, exposed in settings.js
-  `functionGlobalContext`), runs the `apply_bms_config` tool loop (max 6 rounds), and returns
-  `{ok, reply, events[], error}` **in the HTTP response**. The widget renders from that response.
+- **Chat**: the widget POSTs `fetch('/bms/chat', {action,text})` to
+  (`bms_api_fn_chat`), **`API: chat control`**, which starts a **detached background turn** (`Chat Turn Runner`) and
+  returns immediately (`{ok, started}`) — so a long multi-pass turn never hits the client request
+  timeout. The runner calls the provider via `global.fetchFn`, runs the `apply_bms_config` tool
+  loop (≤10 rounds), and writes progress to a **server-side transcript** (`flow.chatTranscript`)
+  with a `flow.chatPending` flag. The widget **polls `GET /bms/chattranscript`** (~1.5 s) to render
+  messages as they arrive, and **loads the transcript on mount** — so leaving the page and coming
+  back restores the conversation and resumes an in-flight turn (a reply that completes while you're
+  away is recovered, not lost). Single-flight: a new message while one is running is rejected.
   History persists in flow context `chatHistory`.
 - **Settings**: behind a ⚙ gear (top-right of the chat) — a dialog inside the chat widget, fetch-driven via `GET/POST /bms/chatsettings` (provider, per-provider key, model, DeepSeek reasoning level). The chat is now full-width (the separate settings group was removed).
 - **API log**: the `API Log UI` **polls `GET /bms/apilog`** every ~2.5 s and renders the
