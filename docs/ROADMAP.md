@@ -28,6 +28,28 @@ Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 
 ---
 
+## Ordre de travail convenu
+
+Les dépendances comptent plus que les priorités : chaque étape est un prérequis
+de la suivante.
+
+1. **Régénérer la graine** — elle est périmée, tout le reste partirait d'un état
+   faux (§ 9).
+2. **Profils COV** (§ 2) — indépendant, et referme le sujet du volume de
+   notifications.
+3. **Taxonomie des étiquettes, zones et groupes** (§ 3) — le registre de zones
+   est l'endroit où vivront les paramètres thermiques et les surfaces vitrées.
+4. **Modèle thermique 2C + bruit** (§ 4) — sans lui, aucun estimateur n'est
+   vérifiable : les données ne contiendraient pas ce qu'on cherche à retrouver.
+5. **Irradiance** (§ 5) — le solaire est le principal facteur de confusion de
+   l'identification ; l'ajouter après coup fausserait les paramètres déjà tirés.
+6. **Identification thermique** (§ 6), en commençant par le niveau 0, qui sert
+   aussi de repli permanent.
+7. **Localisation** (§ 7) et **bonnes pratiques en outil** (§ 8) — sans
+   dépendance, à intercaler quand cela arrange.
+
+---
+
 ## 1. Supprimer le mode « internal » — FAIT (2026-08-07)
 
 Une seule source de points désormais : BACnet. Modes `simulated` | `real` |
@@ -118,7 +140,217 @@ points toutes les 2 s). À implémenter dans `buildObjects()`
 
 ---
 
-## 3. Bonnes pratiques en outil, par thème
+## 3. Taxonomie des étiquettes, zones et groupes — PRÉREQUIS au thermique
+
+### Constat
+
+La zone existe déjà et porte tout le travail de regroupement : le moteur
+physique groupe sur `bmsMetadata[id].zone`, et le détecteur
+`actuator-sensor-feedback` compare les zones de deux points. Mais elle est
+**codée en dur** dans les littéraux de `lib/bms-core/points.js`, invisible et
+non modifiable dans l'interface — et elle n'existe pas dans une table BACnet,
+donc elle ne peut pas venir de l'automate.
+
+Les étiquettes, elles, mélangent quatre natures : étages (`floor1`), types de
+local (`lobby`, `meeting`), rôles (`sensor`, `actuator`) et fonctions
+(`temperature`, `co2`, `lighting`). Les deux premières font doublon avec la zone.
+
+### Cible
+
+**Un type sur chaque étiquette.** Le registre d'étiquettes devient :
+
+```json
+{ "tag": "F1_Meeting",  "type": "zone" }
+{ "tag": "temperature", "type": "function" }
+{ "tag": "sensor",      "type": "role" }
+{ "tag": "booking",     "type": "other" }
+```
+
+- `zone` — **exactement une par point** (un capteur n'est pas dans deux locaux).
+  Contrainte à faire respecter par l'interface d'affectation, contrairement aux
+  fonctions qui sont multiples.
+- `function` — valeurs prédéfinies proposées avant saisie libre : `temperature`,
+  `humidity`, `co2`, `iaq`, `motion`, `occupancy`, `light`, `lighting`,
+  `hvac_temp`, `hvac_vent`, `setpoint`, `ventilation`.
+- `role` — prédéfinies : `sensor`, `actuator`. Extensible.
+- `other` — le reste (`booking`, `schedule`…).
+
+**Groupes de zones, hiérarchiques.** Bouton « créer un groupe de zones » : un
+groupe rassemble des zones *et d'autres groupes*. « Étage 1 » regroupe les zones
+du niveau ; « Façade sud » regroupe des zones de plusieurs étages ; « Bâtiment »
+regroupe les étages. Un groupe est utilisable en filtre au même titre qu'une
+zone. Prévoir la détection de cycle à la création.
+
+**Filtre du Device & Tag Manager** trié par nature : *Zones* · *Groupes* ·
+*Fonctions* · *Rôles* · *Autres*. La zone reste affichée dans sa propre colonne
+de la liste des appareils.
+
+### Migration — le point délicat
+
+Rendre la zone modifiable ne doit pas casser les deux consommateurs actuels.
+
+Approche recommandée : **la source de vérité devient l'étiquette de type `zone`,
+et `bmsMetadata[id].zone` reste un champ DÉRIVÉ**, recalculé à chaque
+modification d'étiquette. Le moteur physique et l'analyseur continuent de lire
+`meta.zone` sans changement — chemin chaud simple, migration réduite, et un seul
+endroit où la vérité est écrite.
+
+Étapes :
+1. Ajouter le registre d'étiquettes typées (contexte `tagRegistry`, persisté
+   dans le magasin `file`).
+2. Générer les étiquettes de type `zone` depuis les `zone:` existants des 86
+   points ; classer les étiquettes actuelles (`floor*`, types de local → à
+   retirer une fois les groupes en place ; `sensor`/`actuator` → `role` ; le
+   reste → `function` ou `other`).
+3. Exposer la modification dans le Device & Tag Manager, avec recalcul de
+   `meta.zone` à chaque affectation.
+4. `tag_create` est aujourd'hui sans effet (dette P2) — à corriger dans le même
+   mouvement, puisque la création d'étiquette devient centrale.
+5. Vérifier après migration : le moteur physique doit toujours découvrir 13
+   zones, et les 55 tests rester verts.
+
+> Ne pas oublier : `packaging/seed/global.json` est **périmé** par rapport à la
+> configuration vivante (41 états / 135 règles contre 37 / 130 — la logique de
+> préconditionnement a été ajoutée depuis). La régénérer avant toute migration,
+> sinon la migration porterait sur un état obsolète.
+
+---
+
+## 4. Modèle thermique du simulateur — PRÉREQUIS à l'identification
+
+Le modèle actuel est **1C sans masse**, avec une constante de temps d'environ
+**14 minutes** :
+
+```
+dT/dt = clamp(0,4·erreur, ±0,25) − 0,0024·(T − T_ext)     par tick de 2 s
+```
+
+Conséquence : le préconditionnement de 120 minutes porte sur ~8,6 constantes de
+temps. Le bâtiment simulé est stabilisé bien avant, donc la fonction est
+**inobservable** en simulation, et un estimateur 2C ajusté sur ces données
+estimerait un paramètre que les données ne contiennent pas.
+
+### Cible : 2C par zone
+
+- **Nœud air** : τ ≈ 15–30 min, couplé au CVC et à la masse.
+- **Nœud masse** : τ ≈ 10–50 h, couplé à l'air et à l'extérieur.
+- Paramètres stockés dans le registre de zones (cf. § 3).
+
+**Bruit — deux natures à ne pas confondre :**
+- *bruit de mesure* : blanc, quelques centièmes de degré, ajouté à la lecture,
+  ne s'accumule pas ;
+- *bruit de procédé* : marche aléatoire de faible amplitude sur le nœud masse,
+  représentant les apports non modélisés (occupants, équipements, portes).
+  **C'est celui-ci qui rend l'identification réaliste.**
+- Quantifier les lectures au dixième de degré, comme un capteur réel : cela seul
+  pose un plancher d'identifiabilité.
+
+**Vitesse** : avec une masse à 20 h, le multiplicateur du mode Démo/Test cesse
+d'être un confort et devient nécessaire pour observer quoi que ce soit.
+
+---
+
+## 5. Irradiance solaire
+
+### Géométrie
+
+- Orientation principale du bâtiment (azimut), réglée une fois.
+- Par zone : surface vitrée à 0°, 90°, 180°, 270° **relativement** à cette
+  orientation. Stocké dans le registre de zones.
+- Position solaire déjà disponible (suncalc + lat/lon). L'irradiance incidente
+  par façade s'obtient en séparant le global en direct et diffus, puis en
+  projetant le direct selon l'angle d'incidence.
+- S'en tenir là : ni masques, ni facteurs de forme, ni albédo.
+
+### Sources de données — à VÉRIFIER avant de s'engager
+
+| Source | Usage | Confiance |
+|---|---|---|
+| **Open-Meteo** | irradiance courante + prévision court terme, gratuit, sans clé | la plus prometteuse |
+| **PVGIS** (Commission européenne) | séries historiques / TMY pour le simulateur | bonne |
+| OpenWeatherMap (déjà intégré) | nébulosité ; l'irradiance ne semble pas offerte en gratuit | à vérifier |
+
+À savoir : `glob_outside_lux` est aujourd'hui **synthétisé** depuis la
+nébulosité dans le nœud « Parse & Update ». Le remplacer par une irradiance
+mesurée est un petit changement à fort effet — tous les termes solaires en
+dépendent.
+
+La **prévision à ~2 h** vaut plus que la précision du modèle : savoir qu'une
+façade sud va recevoir 700 W/m² dans deux heures pèse davantage qu'une capacité
+thermique bien ajustée. C'est là qu'est le gain sur la surchauffe estivale.
+
+---
+
+## 6. Identification thermique — hiérarchie de modèles
+
+Trois niveaux, publiés derrière **la même interface**.
+
+**Niveau 0 — départ optimisé auto-apprenant (à faire en premier).**
+Pas de modèle. Durée de préchauffage préréglée, capture de la température
+atteinte en fin de préchauffage dans une variable, et une règle ajuste
+progressivement la durée. C'est la méthode des GTB commerciales depuis des
+décennies, et c'est aussi le repli quand l'estimateur n'a pas de données.
+
+**Niveau 1 — 1C.** Constante de temps et gain de chauffe identifiés sur les
+périodes en évolution libre (nuits, week-ends, CVC à l'arrêt), où la décroissance
+vers l'extérieur donne τ directement.
+
+**Niveau 2 — 2C + prévision.** Air et masse séparés, avec prévision de
+température extérieure et apports solaires au prorata des surfaces vitrées et de
+leur orientation.
+
+### Identifiabilité — à garder en tête
+
+Avec seulement T_int, T_ext et la commande CVC, on identifie de façon fiable
+**une constante de temps dominante et un gain**. Séparer air et masse exige soit
+une seconde mesure, soit des données couvrant proprement les deux échelles de
+temps. Un 2C ajusté sur des données de 1C renvoie des valeurs confiantes et
+fausses.
+
+Le solaire est le principal facteur de confusion : sans irradiance, l'estimateur
+le repliera silencieusement dans le gain de chauffe.
+
+Les zones fuient les unes dans les autres : un modèle mono-zone absorbe cela
+dans des paramètres effectifs — acceptable pour un départ optimisé, faux dès que
+deux zones voisines suivent des horaires différents.
+
+### Exposition à l'IA — publier le RÉSULTAT, pas le modèle
+
+Ni valeurs R/C brutes (un modèle de langage raisonne mal dessus), ni appel
+d'outil (inutilisable dans une condition de règle).
+
+Un **point virtuel par zone** — `f1_lobby_precondition_start` — calculé en
+continu, que le moteur de règles compare à `glob_time_minutes` avec le
+vocabulaire existant :
+
+```json
+{ "fact": "glob_time_minutes", "operator": "greaterThanInclusiveFact",
+  "value": { "fact": "f1_lobby_precondition_start" } }
+```
+
+Aucun concept nouveau pour le moteur, rien à enseigner au prompt. Publier à côté
+un **indice de confiance** par zone, et **retomber automatiquement** sur
+`st_precondition_lead_minutes` quand la confiance est faible : un bâtiment qui ne
+chauffe pas parce qu'un estimateur était trop sûr de lui est bien pire qu'un
+bâtiment qui préchauffe trente minutes trop tôt.
+
+---
+
+## 7. Localisation de l'interface
+
+L'interface est en anglais, la documentation de déploiement en français, et les
+commentaires du code en français. Décider d'une politique, puis l'appliquer.
+
+- Extraire les libellés de l'interface dans un dictionnaire par langue plutôt
+  que de les laisser en dur dans les `ui-template`.
+- Langue choisie dans la page Settings, persistée dans le magasin `file`.
+- Commencer par fr/en. Prévoir que les messages issus du moteur (avertissements
+  de l'analyseur, erreurs de l'API) sont aujourd'hui en français dans le code et
+  en anglais dans le prompt IA — trancher.
+- Ne pas traduire les identifiants de points, d'étiquettes ni de règles : ce
+  sont des clés, pas du texte.
+
+## 8. Bonnes pratiques en outil, par thème
 
 Remplacer le bloc de recommandations du prompt par un outil que le modèle
 consulte à la demande : `read_guidance({ theme })`, plus une liste de thèmes
@@ -138,8 +370,11 @@ désormais dans le résultat d'outil, donc l'assistant se corrige dans le tour.
 
 ---
 
-## 4. Dettes connues
+## 9. Dettes connues
 
+- **Graine périmée** : `packaging/seed/global.json` (37 états / 130 règles) est en
+  retard sur la configuration vivante (41 / 135, préconditionnement inclus).
+  À régénérer avec `node packaging/tools/mkseed.js`.
 - **Documentation française** : `INSTALLATION.md` et `UTILISATION.md` ne
   couvrent ni le mode BACnet, ni `bms-sim-start`, ni la page BACnet Server.
 - **Reliquats P2 de l'audit** : humidité jamais simulée, `loc_timezone`
