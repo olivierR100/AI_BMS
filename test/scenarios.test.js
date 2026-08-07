@@ -506,14 +506,16 @@ describe('Profils COV', () => {
     test('l’affectation par étiquette suit les points sans intervention', async () => {
         await reset();
         await bms.cov({ action: 'setProfile', profile: { name: 'CO2 fin', increments: { ppm: 7 } } });
+        // La zone EST une étiquette depuis la taxonomie (§ 3) : un profil
+        // s'affecte donc à une zone sans mécanisme supplémentaire.
         const a = await bms.cov({
-            action: 'setAssignments', assignments: [{ tag: 'meeting', profile: 'CO2 fin' }],
+            action: 'setAssignments', assignments: [{ tag: 'F1_Meeting', profile: 'CO2 fin' }],
         });
         assert.equal(a.status, 200);
 
         const s = await bms.covState();
         assert.equal(s.points.f1_meet_co2.increment, 7);
-        assert.equal(s.points.f1_meet_co2.source, 'tag:meeting');
+        assert.equal(s.points.f1_meet_co2.source, 'tag:F1_Meeting');
         assert.equal(s.points.f1_lobby_co2.source, 'default', 'les autres zones ne bougent pas');
         // Le point porte l'étiquette mais son unité n'est pas dans le profil.
         assert.equal(s.points.f1_meet_temp.source, 'default');
@@ -563,5 +565,112 @@ describe('Profils COV', () => {
             timeout: 25000, label: 'lampe allumée malgré les bandes mortes',
         });
         await bms.sensor('f2_off2_motion', false);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Taxonomie des étiquettes', () => {
+    test('le registre typé est exposé, migré, et compté', async () => {
+        const s = await bms.tagState();
+
+        assert.equal(s.zones.length, 13, '12 locaux + l’extérieur');
+        assert.equal(s.devices.length, 104, '86 points matériels + 18 virtuels');
+        assert.equal(s.inventory.role.length, 2);
+        assert.equal(s.inventory.function.length, 12);
+        assert.ok(s.inventory.group.length >= 10, 'étages, types de local et le bâtiment');
+
+        // Les redondances ont disparu du registre, pas l'information.
+        for (const gone of ['floor1', 'lobby', 'office']) {
+            assert.equal(s.registry[gone], undefined, `« ${gone} » ne devrait plus être une étiquette`);
+        }
+        assert.ok(s.groups['Floor 1'], 'devenu un groupe de zones');
+        assert.equal(s.registry.F1_Meeting.type, 'zone');
+        assert.equal(s.registry.temperature.type, 'function');
+        assert.equal(s.registry.sensor.type, 'role');
+    });
+
+    test('un groupe se développe et filtre comme une zone', async () => {
+        const b = await bms.tagState();
+        const building = b.inventory.group.find((g) => g.tag === 'Building');
+        assert.ok(building, 'le groupe de groupes doit exister');
+        assert.equal(building.zones.length, 12, 'les 12 zones intérieures');
+        assert.equal(building.count, 84, '86 points moins les 2 de l’extérieur');
+    });
+
+    test('rezoner un point passe par l’API et remplace l’ancienne zone', async () => {
+        const before = (await bms.tagState()).devices.find((d) => d.id === 'f2_off3_lux');
+        assert.equal(before.zone, 'F2_Office3');
+
+        const moved = await bms.tags({ action: 'setZone', pointId: 'f2_off3_lux', zone: 'F2_Office1' });
+        assert.equal(moved.status, 200);
+        assert.deepEqual(moved.body.result.replaced, ['F2_Office3'],
+            'un capteur n’est pas dans deux locaux : l’ancienne zone est retirée');
+
+        const after = moved.body.devices.find((d) => d.id === 'f2_off3_lux');
+        assert.equal(after.zone, 'F2_Office1');
+        assert.equal(after.tags.filter((t) => moved.body.registry[t].type === 'zone').length, 1);
+
+        // Remettre en place : les autres tests décrivent un bâtiment intact.
+        const back = await bms.tags({ action: 'setZone', pointId: 'f2_off3_lux', zone: 'F2_Office3' });
+        assert.equal(back.body.devices.find((d) => d.id === 'f2_off3_lux').zone, 'F2_Office3');
+    });
+
+    test('créer une étiquette exige un type, et l’affectation la refuse sinon', async () => {
+        const sansType = await bms.tags({ action: 'createTag', tag: 'essai_api', type: 'zonne' });
+        assert.equal(sansType.status, 400);
+        assert.match(sansType.body.error, /type inconnu/);
+
+        const inconnue = await bms.tags({ action: 'assignTag', pointId: 'f1_lobby_lux', tag: 'jamais_creee' });
+        assert.equal(inconnue.status, 400);
+        assert.match(inconnue.body.error, /inconnue/);
+
+        const ok = await bms.tags({ action: 'createTag', tag: 'essai_api', type: 'other' });
+        assert.equal(ok.status, 200);
+        assert.equal(ok.body.registry.essai_api.type, 'other');
+
+        const posee = await bms.tags({ action: 'assignTag', pointId: 'f1_lobby_lux', tag: 'essai_api' });
+        assert.ok(posee.body.devices.find((d) => d.id === 'f1_lobby_lux').tags.includes('essai_api'));
+
+        await bms.tags({ action: 'deleteTag', tag: 'essai_api' });
+        assert.equal((await bms.tagState()).registry.essai_api, undefined);
+    });
+
+    test('les garde-fous refusent ce qui casserait la physique', async () => {
+        const zone = await bms.tags({ action: 'deleteTag', tag: 'F1_Lobby' });
+        assert.equal(zone.status, 400);
+        assert.match(zone.body.error, /point\(s\)/, 'doit dire combien de points perdraient leur zone');
+
+        const cycle = await bms.tags({ action: 'setGroupMembers', name: 'Floor 1', members: ['Building'] });
+        assert.equal(cycle.status, 400);
+        assert.match(cycle.body.error, /cycle/);
+    });
+
+    test('un groupe créé par l’API survit et filtre', async () => {
+        const created = await bms.tags({
+            action: 'createGroup', name: 'Façade sud',
+            members: ['F1_Meeting', 'F2_Office1', 'F3_Office1'],
+        });
+        assert.equal(created.status, 200);
+        assert.equal(created.body.result.zones.length, 3, 'un libellé accentué reste tel quel');
+
+        const state = await bms.tagState();
+        assert.ok(state.groups['Façade sud']);
+
+        await bms.tags({ action: 'deleteGroup', name: 'Façade sud' });
+        assert.equal((await bms.tagState()).groups['Façade sud'], undefined);
+    });
+
+    test('le bâtiment continue de fonctionner après la migration', async () => {
+        // La physique groupe sur `meta.zone`, qui est désormais dérivé : si la
+        // dérivation était fausse, l'éclairage sur présence ne suivrait plus.
+        await bms.sensor('f3_off3_motion', true);
+        await bms.expectPoint('f3_off3_lamp', true, {
+            timeout: 25000, label: 'lampe allumée après migration de la taxonomie',
+        });
+        await bms.sensor('f3_off3_motion', false);
+
+        const fl = await bms.firelog();
+        assert.ok((fl.rulesLoaded || 0) > 100, 'les règles sont toujours chargées');
     });
 });

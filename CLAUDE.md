@@ -23,6 +23,8 @@ config schema: `docs/BMS_CONFIG_SCHEMA.md`.
 - `GET /commandlog` — command audit trail; `?n=`, `?id=`, `?source=`, `?failed=true`
 - `GET/POST /cov` — COV profiles: effective increment, provenance and measured notif/min per
   point; `POST {action}` = `setProfile|deleteProfile|setAssignments|setOverride|preview|applyToPoints|push`
+- `GET/POST /tags` — typed tag registry, zones, zone groups (`?expand=<group>`,
+  `?pointsIn=<zone|group>`); `POST {action}` = `createTag|deleteTag|retypeTag|renameTag|assignTag|unassignTag|setZone|createGroup|setGroupMembers|deleteGroup`
 
 Slash commands: `/bms-status`, `/bms-apply <request>`, `/bms-debug <symptom>`, `/bms-simulate <scenario>`.
 
@@ -40,8 +42,8 @@ alignment guidelines live there now; the non-negotiable "never remove them" rule
 `lib/bms-core/` holds what used to be 75 k chars inside "Initialize System (V12)":
 `points.js` (bacnetPoints/bmsMetadata/virtualPoints tables), `bms.js` (the `BMS`
 object + `applyConfig`), `drivers.js` (IO layer), `drivers/bacnet.js`, `cov.js`
-(COV profiles), `safety.js`, `analyse.js`, `prompt.js`, `providers.js`, `tools.js`,
-`logging.js`, `restore.js`. Loaded by settings.js as
+(COV profiles), `tags.js` (typed tags, zones, groups), `safety.js`, `analyse.js`,
+`prompt.js`, `providers.js`, `tools.js`, `logging.js`, `restore.js`. Loaded by settings.js as
 `functionGlobalContext.bmsCore`; the flow node is now a ~30-line bootstrap.
 - **Editing `lib/` requires a Node-RED restart, not just a deploy** (functionGlobalContext
   is read at startup). Editing flows.json is still deploy-only.
@@ -90,6 +92,29 @@ Control Panel and Device Manager work unchanged with no idea a network appeared 
   Sensor Simulation panel goes through the simulator's own HTTP control channel (port 47811),
   upstream of BACnet.
 
+## Tag taxonomy — one type per tag, zones and groups
+`lib/bms-core/tags.js` + `GET/POST /bms/tags`. Every tag in `tagRegistry` carries a **type**:
+`zone` (exactly one per point) · `function` (temperature, co2, lighting…) · `role`
+(sensor/actuator) · `other` (booking, schedule…). **Zone groups** (`zoneGroups`) hold zones
+*and other groups*, so `Building` → the three floors → their zones; a group filters exactly
+like a zone, and cycles are refused with the offending path.
+- The **zone tag is the source of truth**; `bmsMetadata[id].zone` stays a **derived** field,
+  rewritten only by `deriveZones()`. Physics and `analyse.js` keep reading `meta.zone` unchanged
+  — the hot path never learned about the registry, and still finds 13 zones (12 rooms + External).
+- Role and function tags are **load-bearing**: physics categorises on `sensor`+`temperature`,
+  `actuator`+`lighting`…, and `control_group` expands tags to points. Never repurpose them.
+- The demo migration turned the 9 redundant tags (`floor1..3`, `global`, and the room types)
+  into 10 groups and dropped them from the registry — checked first that no rule cited any of
+  them. It is idempotent; a hand-added tag is reconciled to `other` at the next boot.
+- Guards refuse rather than repair: deleting a zone still carried by points (they would vanish
+  from physics grouping), retyping to `zone` when a point would then hold two, a group cycle.
+  Renaming a tag follows points, group members **and `covTagAssignments`**.
+- A tag is an **identifier** (rules cite it → restricted charset, spaces become underscores);
+  a group name is a **label** (accents and spaces welcome: "Façade sud").
+- Known seam: the BACnet simulator loads its **own** copy of the point tables, so re-zoning in
+  the UI changes the BMS view but not the simulated building's walls. This matters for §4 of
+  the roadmap, where per-zone thermal parameters must reach that process.
+
 ## COV profiles — how much traffic a point may produce
 `lib/bms-core/cov.js` + `GET/POST /bms/cov`. A profile is a **sparse** unit→increment table,
 not a scalar: a named profile only affects a point whose unit it defines (applying a ppm-only
@@ -134,6 +159,7 @@ explain why one point behaves differently from its neighbour.
 ## Working agreements
 - All point access through the global `BMS` abstraction; config application through `BMS.applyConfig` (single seam, now in `lib/bms-core/bms.js`).
 - Preserve the `bacnetPoints` (hardware) / `bmsMetadata` (BMS-side) separation — it is the future real-BACnet seam.
+- Tag and zone changes go through `tagPolicy` (`lib/bms-core/tags.js`): it is the only writer of the derived `bmsMetadata[id].zone`, and it enforces one-zone-per-point plus the rename propagation.
 - Dashboard 2.0 Vue patterns: `@end` for v-slider (+`@start` to set the `editing` guard), `@change` for v-switch; `storeOutMessages` + `passthru` on emitting ui-templates.
 - Never remove the conversational alignment guidelines from "Build AI Prompt (Interactive)".
 - AI config, tag edits, and location settings persist to the `file` context store (`~/.node-red/context/global/global.json`, 30 s flush) and restore at boot — `default` store stays in memory (BMS object and NodeCache are not serializable).

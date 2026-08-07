@@ -70,6 +70,11 @@ class BmsClient {
     async point(id)  { return (await this.#json('GET', `/bms/points?id=${encodeURIComponent(id)}`)).body; }
     async syslog(q = '') { return (await this.#json('GET', `/bms/syslog${q}`)).body; }
 
+    /** Taxonomie : registre typé, zones, groupes. */
+    async tagState() { return (await this.#json('GET', '/bms/tags')).body; }
+    /** Édition de la taxonomie. Rend `{status, body}` : les refus sont testés. */
+    async tags(body) { return this.#json('POST', '/bms/tags', body); }
+
     /** Profils COV : état complet, incréments effectifs et provenances inclus. */
     async covState() { return (await this.#json('GET', '/bms/cov')).body; }
     /** Édition des profils COV. Rend `{status, body}` : les refus sont testés. */

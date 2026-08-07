@@ -10,14 +10,15 @@ limitations connues, `packaging/` pour la distribution.
 
 ## Où en est le système
 
-Déployé et vérifié : 93 tests verts (`node --test --test-concurrency=1 test/`),
+Déployé et vérifié : 126 tests verts (`node --test --test-concurrency=1 test/`),
 Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 
 | Brique | État |
 |---|---|
 | Cœur extrait dans `lib/bms-core/` | fait |
-| Harnais de tests (scénarios + unitaires) | fait, 93 tests |
+| Harnais de tests (scénarios + unitaires) | fait, 126 tests |
 | Profils COV par abonnement (SubscribeCOVProperty) | fait, pire cas 6,1/s → 2,8/s |
+| Taxonomie : étiquettes typées, zones, groupes | fait, 13 zones · 10 groupes |
 | Mode Démo/Test (horloge accélérée) | fait, dans Settings |
 | Couche pilote, écritures async, qualité/péremption | fait |
 | Enveloppe de sécurité (traçabilité, cadence, approbation) | fait |
@@ -45,14 +46,14 @@ de la suivante.
    notifications est refermé, mais pas comme prévu : les « ~20/s » annoncés
    étaient une estimation fausse (cf. § 2). Gain réel mesuré : ×2 avec le socle,
    ×5 avec un profil grossier, sur un bâtiment entier en convergence.
-2. **Taxonomie des étiquettes, zones et groupes** (§ 3) — **prochaine étape**.
-   Le registre de zones est l'endroit où vivront les paramètres thermiques et
-   les surfaces vitrées. À savoir avant de commencer : les profils COV
-   s'affectent par étiquette (`covTagAssignments`), donc typer les étiquettes
-   touche aussi ce mécanisme — une étiquette renommée doit entraîner son
-   affectation, sinon le profil devient un réglage fantôme.
-3. **Modèle thermique 2C + bruit** (§ 4) — sans lui, aucun estimateur n'est
-   vérifiable : les données ne contiendraient pas ce qu'on cherche à retrouver.
+2. ~~**Taxonomie des étiquettes, zones et groupes** (§ 3)~~ — **fait le
+   2026-08-07**. Le registre de zones est en place : c'est là que le § 4 posera
+   les paramètres thermiques et les surfaces vitrées. Le renommage propage bien
+   vers `covTagAssignments`.
+3. **Modèle thermique 2C + bruit** (§ 4) — **prochaine étape**. Sans lui, aucun
+   estimateur n'est vérifiable : les données ne contiendraient pas ce qu'on
+   cherche à retrouver. À trancher en commençant : comment les paramètres par
+   zone atteignent le processus du simulateur (cf. la couture en fin de § 3).
 4. **Irradiance** (§ 5) — le solaire est le principal facteur de confusion de
    l'identification ; l'ajouter après coup fausserait les paramètres déjà tirés.
 5. **Identification thermique** (§ 6), en commençant par le niveau 0, qui sert
@@ -277,9 +278,77 @@ et sans elle les surcharges existantes sont conservées et comptées comme telle
 
 ---
 
-## 3. Taxonomie des étiquettes, zones et groupes — PRÉREQUIS au thermique
+## 3. Taxonomie des étiquettes, zones et groupes — FAIT (2026-08-07)
 
-### Constat
+Logique dans `lib/bms-core/tags.js`, API `GET/POST /bms/tags`, patch de flow dans
+`tools/patches/13-tag-taxonomy.js`, 33 tests de plus (126 au total).
+
+État après migration du parc de démonstration :
+
+| Nature | Compte | Contenu |
+|---|---|---|
+| `zone` | 13 | les 12 locaux + `External` |
+| `function` | 12 | `temperature`, `co2`, `lighting`, `hvac_temp`… |
+| `role` | 2 | `sensor`, `actuator` |
+| `other` | 3 | `booking`, `schedule`, `weather` |
+| groupes | 10 | 3 étages + 5 types de local + `Outside` + `Building` |
+
+Les 9 étiquettes redondantes (`floor1..3`, `global`, `lobby`, `corridor`,
+`meeting`, `office`, `storage`) sont **devenues des groupes** et ont disparu du
+registre. Vérifié avant de le faire : la configuration vivante ne cite que
+`lighting` et `hvac_temp`, deux fonctions — aucune règle ne s'appuyait sur un
+étage ni sur un type de local, donc la conversion n'en casse aucune.
+
+`Building` regroupe les trois étages, qui regroupent leurs zones : la hiérarchie
+demandée existe, et `Building` développe bien 12 zones et 84 points.
+
+### Ce qui a été retenu, et pourquoi
+
+- **La zone est une étiquette comme les autres**, et `bmsMetadata[id].zone` reste
+  un champ **dérivé**, recalculé au seul endroit qui l'écrit (`deriveZones`). Le
+  moteur physique et l'analyseur continuent de lire `meta.zone` sans rien savoir
+  du registre — le chemin chaud n'a pas bougé, et la physique retrouve ses
+  13 zones.
+- **La contrainte « une seule zone par point » est tenue dans le cœur**, pas
+  seulement dans l'interface : affecter une zone en retire l'ancienne et le
+  signale (`replaced`). Une API qui pourrait produire un état que l'interface
+  interdit ne serait pas une contrainte, seulement une convention.
+- **Un groupe est un libellé, une étiquette est un identifiant.** Les règles
+  citent les étiquettes (`control_group`), donc elles gardent un jeu de
+  caractères restreint et les espaces deviennent des soulignés. Les groupes ne
+  servent qu'à filtrer et à s'afficher : « Façade sud » garde son accent et son
+  espace.
+- **Les garde-fous refusent plutôt qu'ils ne réparent** : supprimer une zone
+  encore portée est refusé (avec le nombre de points qui se retrouveraient sans
+  zone, et donc invisibles pour la physique) sauf forçage explicite ; retyper une
+  étiquette en zone est refusé si un point en porterait deux ; un cycle de
+  groupes est refusé avec le chemin fautif (`Floor 1 → Building → Floor 1`).
+- **Renommer suit l'étiquette partout** : points, membres de groupes, et
+  `covTagAssignments`. C'est la dépendance notée en refermant le § 2 — une
+  affectation de profil COV laissée derrière serait un réglage fantôme.
+
+### Dettes réglées au passage
+
+- `tag_create` était sans effet (dette P2). Créer une étiquette a maintenant un
+  sens : elle n'existe qu'avec un **type**, choisi dans l'interface.
+- Le Device & Tag Manager était câblé en sortie, donc il ne recevait **pas** les
+  messages entrants en direct (piège Dashboard 2.0 connu) : sa table était figée
+  après le montage, et le rafraîchissement de 5 s tombait dans le vide. Il lit
+  désormais `/bms/tags` lui-même. Le gestionnaire par topics
+  (`device_tag_handler`), sans émetteur, a été retiré.
+
+### Une couture à connaître pour le § 4
+
+Le simulateur BACnet charge **sa propre copie** des tables de points, avec les
+zones des littéraux de `points.js` — il ne passe pas par le registre. Rezoner un
+point depuis l'interface change donc la vue du BMS (règles, analyseur, filtres)
+mais **pas les murs du bâtiment simulé**. C'est sans conséquence aujourd'hui ;
+cela en aura une au § 4, où les paramètres thermiques par zone devront atteindre
+le processus du simulateur. Deux voies possibles à trancher à ce moment-là :
+faire lire le registre au simulateur au démarrage, ou lui pousser la
+configuration par son canal de contrôle.
+
+### Constat d'origine
 
 La zone existe déjà et porte tout le travail de regroupement : le moteur
 physique groupe sur `bmsMetadata[id].zone`, et le détecteur
@@ -346,10 +415,16 @@ endroit où la vérité est écrite.
 5. Vérifier après migration : le moteur physique doit toujours découvrir 13
    zones, et les 55 tests rester verts.
 
-> Ne pas oublier : `packaging/seed/global.json` est **périmé** par rapport à la
-> configuration vivante (41 états / 135 règles contre 37 / 130 — la logique de
-> préconditionnement a été ajoutée depuis). La régénérer avant toute migration,
-> sinon la migration porterait sur un état obsolète.
+Les cinq étapes sont faites. La migration est **idempotente** (un second passage
+ne trouve rien à reprendre) et une étiquette posée à la main hors interface est
+rattrapée au démarrage suivant par la réconciliation, classée en `other` plutôt
+qu'ignorée.
+
+> La graine `packaging/seed/global.json` n'a **pas** été régénérée, et ce n'était
+> pas nécessaire : la migration part de `bmsMetadata`, qui est reconstruit depuis
+> les littéraux de `points.js` à chaque démarrage, puis fusionné avec ce qui est
+> persisté. Elle ne dépend donc pas de l'état des règles dans la graine. Reste la
+> décision du § 0 : ce que contient la configuration de démonstration livrée.
 
 ---
 

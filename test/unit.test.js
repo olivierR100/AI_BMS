@@ -577,3 +577,238 @@ describe('Plafond de cadence COV', () => {
         assert.equal(s.lastApplied, 1000, 'la fenêtre repart de la libération');
     });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Taxonomie des étiquettes, zones et groupes
+// ─────────────────────────────────────────────────────────────────────────────
+
+const installTags = require('../lib/bms-core/tags');
+const installRealPoints = require('../lib/bms-core/points');
+const { wouldCycle, expand, normaliseTag, normaliseGroupName,
+        classify: classifyTag } = require('../lib/bms-core/tags');
+const { runPhysicsTick } = require('../lib/bacnet-sim/physics');
+
+/** Le vrai parc : la migration doit être vérifiée sur ce qu'elle migrera. */
+function realContext() {
+    const ctx = fakeContext();
+    installRealPoints(ctx);
+    const tags = installTags(ctx);
+    return { ctx, tags };
+}
+
+describe('Migration de la taxonomie', () => {
+    let ctx, tags;
+    beforeEach(() => { ({ ctx, tags } = realContext()); });
+
+    test('chaque valeur de zone devient une étiquette de type zone', () => {
+        const zones = tags.zones();
+        assert.equal(zones.length, 13, '12 locaux + l’extérieur');
+        assert.ok(zones.includes('F1_Meeting') && zones.includes('External'));
+        for (const z of zones) assert.equal(tags.typeOf(z), 'zone');
+    });
+
+    test('chaque point porte sa zone comme étiquette, et une seule', () => {
+        const meta = ctx.global.get('bmsMetadata');
+        for (const [id, entry] of Object.entries(meta)) {
+            const zoneTags = (entry.tags || []).filter((t) => tags.typeOf(t) === 'zone');
+            assert.equal(zoneTags.length, 1, `${id} doit porter exactement une zone`);
+            assert.equal(zoneTags[0], entry.zone, `${id} : zone dérivée incohérente`);
+        }
+    });
+
+    test('rôles et fonctions sont préservés — la physique en dépend', () => {
+        assert.deepEqual(tags.byType('role'), ['actuator', 'sensor']);
+        const fns = tags.byType('function');
+        for (const f of ['temperature', 'co2', 'lighting', 'hvac_temp', 'setpoint', 'motion']) {
+            assert.ok(fns.includes(f), `fonction ${f} perdue`);
+        }
+    });
+
+    test('étages et types de local deviennent des groupes de zones', () => {
+        const groups = tags.groups();
+        assert.ok(groups['Floor 1'] && groups['Corridors'] && groups['Offices']);
+        assert.deepEqual(groups['Floor 1'].members.sort(),
+            ['F1_Corridor', 'F1_Lobby', 'F1_Meeting', 'F1_Storage']);
+        assert.equal(groups['Corridors'].members.length, 3, 'un couloir par étage');
+
+        // Et ils ne traînent plus comme étiquettes.
+        for (const gone of ['floor1', 'floor2', 'floor3', 'lobby', 'corridor', 'meeting', 'office', 'storage']) {
+            assert.equal(tags.typeOf(gone), null, `« ${gone} » devait disparaître du registre`);
+            assert.equal(tags.useCount(gone), 0, `« ${gone} » est encore posée sur des points`);
+        }
+    });
+
+    test('la hiérarchie existe : un groupe de groupes', () => {
+        const e = tags.expandGroup('Building');
+        assert.deepEqual(e.groups.sort(), ['Building', 'Floor 1', 'Floor 2', 'Floor 3']);
+        assert.equal(e.zones.length, 12, 'les 12 zones intérieures, pas l’extérieur');
+        assert.ok(!e.zones.includes('External'));
+        assert.equal(tags.pointsIn('Building').length, 84, '86 points moins les 2 de l’extérieur');
+    });
+
+    test('la physique découvre toujours 13 zones', () => {
+        const res = runPhysicsTick(ctx.global.get('bacnetPoints'), ctx.global.get('bmsMetadata'));
+        assert.equal(res.zoneCount, 13,
+            'meta.zone reste dérivé et lisible — le chemin chaud ne doit rien voir');
+    });
+
+    test('la migration est idempotente', () => {
+        const before = JSON.stringify({
+            reg: ctx.global.get('tagRegistry'), grp: ctx.global.get('zoneGroups'),
+            meta: ctx.global.get('bmsMetadata'),
+        });
+        installTags(ctx);   // second passage : réconciliation, rien à faire
+        const after = JSON.stringify({
+            reg: ctx.global.get('tagRegistry'), grp: ctx.global.get('zoneGroups'),
+            meta: ctx.global.get('bmsMetadata'),
+        });
+        assert.equal(after, before);
+    });
+
+    test('la réconciliation rattrape une étiquette posée à la main', () => {
+        const meta = ctx.global.get('bmsMetadata');
+        meta.f1_lobby_temp.tags.push('inventee');
+        ctx.global.set('bmsMetadata', meta);
+        const again = installTags(ctx);
+        assert.equal(again.typeOf('inventee'), 'other', 'classée par défaut, pas ignorée');
+    });
+});
+
+describe('Contraintes de la taxonomie', () => {
+    let ctx, tags;
+    beforeEach(() => { ({ ctx, tags } = realContext()); });
+
+    test('une zone en remplace une autre — un capteur n’est pas dans deux locaux', () => {
+        const r = tags.assignTag('f1_meet_temp', 'F2_Office1');
+        assert.deepEqual(r.replaced, ['F1_Meeting']);
+        assert.equal(tags.zoneOf('f1_meet_temp'), 'F2_Office1');
+        const zoneTags = ctx.global.get('bmsMetadata').f1_meet_temp.tags
+            .filter((t) => tags.typeOf(t) === 'zone');
+        assert.equal(zoneTags.length, 1);
+    });
+
+    test('les fonctions, elles, s’accumulent', () => {
+        tags.assignTag('f1_meet_temp', 'humidity');
+        const t = ctx.global.get('bmsMetadata').f1_meet_temp.tags;
+        assert.ok(t.includes('temperature') && t.includes('humidity'));
+    });
+
+    test('affecter une étiquette inconnue est refusé, pas inventé', () => {
+        assert.throws(() => tags.assignTag('f1_meet_temp', 'jamais_creee'), /inconnue/);
+    });
+
+    test('créer une étiquette exige un type — c’est ce qui manquait à tag_create', () => {
+        assert.throws(() => tags.createTag('essai', 'zonne'), /type inconnu/);
+        assert.deepEqual(tags.createTag('essai', 'other'), { tag: 'essai', type: 'other' });
+        assert.throws(() => tags.createTag('essai', 'other'), /existe déjà/);
+    });
+
+    test('supprimer une zone portée est refusé sans confirmation explicite', () => {
+        assert.throws(() => tags.deleteTag('F1_Meeting'), /9 point\(s\)/);
+        const forced = tags.deleteTag('F1_Meeting', { force: true });
+        assert.equal(forced.removedFrom, 9);
+        assert.equal(tags.zoneOf('f1_meet_temp'), null, 'les points se retrouvent sans zone');
+        const res = runPhysicsTick(ctx.global.get('bacnetPoints'), ctx.global.get('bmsMetadata'));
+        assert.equal(res.zoneCount, 12, 'et la physique perd bien la zone — d’où le garde-fou');
+    });
+
+    test('retyper en zone est refusé si un point en porterait deux', () => {
+        assert.throws(() => tags.retypeTag('temperature', 'zone'), /deux zones/);
+    });
+
+    test('renommer suit points, groupes et affectations de profils COV', () => {
+        ctx.global.set('covTagAssignments', [{ tag: 'F1_Meeting', profile: 'CO2 fin' }]);
+        const r = tags.renameTag('F1_Meeting', 'F1_Salle_Reunion');
+        assert.equal(r.points, 9);
+        // Cette zone est citée par DEUX groupes : « Floor 1 » et « Meeting rooms ».
+        assert.equal(r.groups, 2, 'un renommage doit suivre tous les groupes, pas le premier');
+        assert.ok(tags.groups()['Meeting rooms'].members.includes('F1_Salle_Reunion'));
+        assert.equal(r.covAssignments, 1, 'sinon le profil deviendrait un réglage fantôme');
+        assert.equal(ctx.global.get('covTagAssignments')[0].tag, 'F1_Salle_Reunion');
+        assert.equal(tags.zoneOf('f1_meet_temp'), 'F1_Salle_Reunion');
+        assert.ok(tags.groups()['Floor 1'].members.includes('F1_Salle_Reunion'));
+    });
+
+    test('supprimer une étiquette retire ses affectations COV', () => {
+        tags.createTag('temporaire', 'other');
+        ctx.global.set('covTagAssignments', [{ tag: 'temporaire', profile: 'X' }]);
+        tags.deleteTag('temporaire');
+        assert.deepEqual(ctx.global.get('covTagAssignments'), []);
+    });
+});
+
+describe('Groupes de zones', () => {
+    let ctx, tags;
+    beforeEach(() => { ({ ctx, tags } = realContext()); });
+
+    test('un groupe filtre exactement comme une zone', () => {
+        assert.equal(tags.pointsIn('F1_Corridor').length, 5);
+        assert.equal(tags.pointsIn('Corridors').length, 15, 'les trois couloirs');
+    });
+
+    test('un libellé garde ses accents et ses espaces', () => {
+        const r = tags.createGroup('Façade sud', ['F1_Meeting', 'F2_Office1']);
+        assert.equal(r.group, 'Façade sud');
+        assert.deepEqual(r.zones.sort(), ['F1_Meeting', 'F2_Office1']);
+        // Une étiquette, elle, reste un identifiant : les règles la citent.
+        assert.throws(() => normaliseTag('Façade sud'), /invalide/);
+    });
+
+    test('un cycle est refusé, avec le chemin', () => {
+        assert.throws(() => tags.setGroupMembers('Floor 1', ['Building']), /cycle refusé.*Building/);
+        tags.createGroup('Aile', ['F1_Lobby']);
+        assert.throws(() => {
+            tags.setGroupMembers('Aile', ['Building']);
+            tags.setGroupMembers('Building', ['Aile']);
+        }, /cycle refusé/);
+    });
+
+    test('un membre inconnu est signalé, pas accepté en silence', () => {
+        const r = tags.createGroup('Bancal', ['F1_Lobby', 'zone_inexistante']);
+        assert.deepEqual(r.members, ['F1_Lobby']);
+        assert.equal(r.warnings.length, 1);
+    });
+
+    test('supprimer un groupe le retire de ses parents', () => {
+        const r = tags.deleteGroup('Floor 1');
+        assert.equal(r.removedFromParents, 1, '« Building » le citait');
+        assert.ok(!tags.groups()['Building'].members.includes('Floor 1'));
+        assert.equal(tags.pointsIn('Building').length, 58, 'les étages 2 et 3 seulement');
+    });
+
+    test('un groupe ne peut pas porter le nom d’une étiquette existante', () => {
+        assert.throws(() => tags.createGroup('sensor', ['F1_Lobby']), /déjà une étiquette/);
+    });
+});
+
+describe('Fonctions pures de la taxonomie', () => {
+    test('détection de cycle', () => {
+        const g = { A: { members: ['B'] }, B: { members: ['C'] }, C: { members: [] } };
+        assert.equal(wouldCycle(g, 'C', ['Z1']), null);
+        assert.ok(wouldCycle(g, 'C', ['A']), 'C → A → B → C');
+        assert.ok(wouldCycle(g, 'A', ['A']), 'auto-appartenance');
+    });
+
+    test('expansion à travers la hiérarchie', () => {
+        const g = { Tout: { members: ['E1', 'E2'] }, E1: { members: ['Z1', 'Z2'] }, E2: { members: ['Z3'] } };
+        const e = expand(g, 'Tout');
+        assert.deepEqual(e.zones.sort(), ['Z1', 'Z2', 'Z3']);
+        assert.deepEqual(e.groups.sort(), ['E1', 'E2', 'Tout']);
+    });
+
+    test('normalisation : étiquette identifiant, groupe libellé', () => {
+        assert.equal(normaliseTag('  salle 12 '), 'salle_12');
+        assert.throws(() => normaliseTag('café'), /invalide/);
+        assert.throws(() => normaliseTag('   '), /vide/);
+        assert.equal(normaliseGroupName('  Façade   sud '), 'Façade sud');
+        assert.throws(() => normaliseGroupName(''), /vide/);
+    });
+
+    test('classement d’une étiquette inconnue', () => {
+        const zones = new Set(['F1_Lobby']);
+        assert.equal(classifyTag('F1_Lobby', zones), 'zone');
+        assert.equal(classifyTag('sensor', zones), 'role');
+        assert.equal(classifyTag('co2', zones), 'function');
+        assert.equal(classifyTag('booking', zones), 'other');
+    });
+});
