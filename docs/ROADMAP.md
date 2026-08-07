@@ -24,7 +24,7 @@ Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 | Pilote BACnet/IP client (parcours, COV, écritures) | fait |
 | Page « BACnet Server » (modes, connexion, parcours) | fait |
 | Canal de contrôle hors-bande du simulateur | fait |
-| Analyse statique des règles | fait, calibrée (14 avertissements sur la démo) |
+| Analyse statique des règles | fait, calibrée (25 avertissements sur la démo, tous fondés) |
 
 ---
 
@@ -146,6 +146,12 @@ désormais dans le résultat d'outil, donc l'assistant se corrige dans le tour.
   décoratif, mode GPS mort, `tag_create` sans effet (devient important quand la
   table de métadonnées est la surface de configuration principale),
   `gap-N` → `ga-N`, horodatages figés dans l'Inspector.
+- **Rétroaction éclairage** : les 11 règles « Actif+Sombre → lampe allumée » se
+  conditionnent sur le luxmètre de la zone qu'elles éclairent. Non corrigées
+  (le jeu de règles de démonstration est laissé tel quel, c'est le cas d'école
+  du détecteur `actuator-sensor-feedback`), mais à reprendre avant une
+  démonstration : une lampe éteinte à la main pendant l'occupation ne se
+  rallume pas tant que le lux n'a pas rebaissé.
 - **Limites BACnet assumées** : pas de MS/TP (routeur IP requis), pas de
   segmentation sortante (RPM par lots de 12, appels sérialisés), capteurs non
   forçables via BACnet (par conception — utiliser le canal de contrôle du
