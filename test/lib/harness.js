@@ -70,6 +70,11 @@ class BmsClient {
     async point(id)  { return (await this.#json('GET', `/bms/points?id=${encodeURIComponent(id)}`)).body; }
     async syslog(q = '') { return (await this.#json('GET', `/bms/syslog${q}`)).body; }
 
+    /** Profils COV : état complet, incréments effectifs et provenances inclus. */
+    async covState() { return (await this.#json('GET', '/bms/cov')).body; }
+    /** Édition des profils COV. Rend `{status, body}` : les refus sont testés. */
+    async cov(body) { return this.#json('POST', '/bms/cov', body); }
+
     /**
      * Force un capteur, comme le ferait le panneau « Sensor Simulation ».
      *

@@ -336,3 +336,244 @@ describe('Enveloppe de sécurité', () => {
         });
     });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Profils COV
+// ─────────────────────────────────────────────────────────────────────────────
+
+const installCov = require('../lib/bms-core/cov');
+const { resolveFor, sanitizeProfile, gateValue, releasePending,
+        defaultProfile, UNIT_DEFAULTS } = require('../lib/bms-core/cov');
+
+/** Un parc mixte : les unités sont ce sur quoi les profils mordent. */
+function seedCovPoints(global) {
+    global.set('bacnetPoints', {
+        z1_temp:  { value: 21, units: '°C', access: 'read_only' },
+        z1_co2:   { value: 450, units: 'ppm', access: 'read_only' },
+        z1_hum:   { value: 45, units: '%', access: 'read_only' },
+        z1_lux:   { value: 300, units: 'lux', access: 'read_only' },
+        z1_motion:{ value: false, units: 'bool', access: 'read_only' },
+        z2_co2:   { value: 500, units: 'ppm', access: 'read_only' },
+    });
+    global.set('bmsMetadata', {
+        z1_temp:  { tags: ['sensor', 'temperature', 'meeting'], zone: 'Z1' },
+        z1_co2:   { tags: ['sensor', 'co2', 'meeting'], zone: 'Z1' },
+        z1_hum:   { tags: ['sensor', 'humidity', 'meeting'], zone: 'Z1' },
+        z1_lux:   { tags: ['sensor', 'light', 'meeting'], zone: 'Z1' },
+        z1_motion:{ tags: ['sensor', 'motion', 'meeting'], zone: 'Z1' },
+        z2_co2:   { tags: ['sensor', 'co2', 'office'], zone: 'Z2' },
+    });
+}
+
+describe('Résolution des profils COV', () => {
+    let ctx, cov;
+
+    beforeEach(() => {
+        ctx = fakeContext();
+        seedCovPoints(ctx.global);
+        cov = installCov(ctx);
+    });
+
+    test('sans profil nommé, chaque unité prend l’incrément du socle', () => {
+        assert.equal(cov.resolve('z1_temp').increment, UNIT_DEFAULTS['°C']);
+        assert.equal(cov.resolve('z1_co2').increment, UNIT_DEFAULTS.ppm);
+        assert.equal(cov.resolve('z1_lux').increment, UNIT_DEFAULTS.lux);
+        assert.equal(cov.resolve('z1_temp').source, 'default');
+    });
+
+    test('un booléen notifie toute transition', () => {
+        const r = cov.resolve('z1_motion');
+        assert.equal(r.unit, 'bool');
+        assert.equal(r.increment, 0, 'incrément nul = aucune bande morte');
+    });
+
+    test('un profil creux ne touche QUE les points de l’unité qu’il définit', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        cov.setAssignments([{ tag: 'meeting', profile: 'CO2 fin' }]);
+
+        assert.equal(cov.resolve('z1_co2').increment, 10, 'le ppm suit le profil');
+        assert.equal(cov.resolve('z1_co2').source, 'tag:meeting');
+
+        // Le point porte l'étiquette, mais son unité n'est pas dans le profil :
+        // le profil est transparent pour lui. C'est le comportement à énoncer
+        // dans l'interface, pas un oubli.
+        const temp = cov.resolve('z1_temp');
+        assert.equal(temp.increment, UNIT_DEFAULTS['°C']);
+        assert.equal(temp.source, 'default');
+    });
+
+    test('précédence : surcharge par point > étiquette > socle', () => {
+        cov.setProfile({ name: 'fin', increments: { ppm: 5 } });
+        cov.setProfile({ name: 'grossier', increments: { ppm: 100 } });
+        cov.setAssignments([{ tag: 'meeting', profile: 'grossier' }]);
+        cov.setOverride('z1_co2', 'fin');
+
+        assert.equal(cov.resolve('z1_co2').increment, 5);
+        assert.equal(cov.resolve('z1_co2').source, 'manual');
+        assert.equal(cov.resolve('z2_co2').increment, UNIT_DEFAULTS.ppm,
+            'un point sans étiquette ni surcharge reste au socle');
+    });
+
+    test('l’ordre des affectations tranche quand deux étiquettes s’appliquent', () => {
+        cov.setProfile({ name: 'A', increments: { ppm: 1 } });
+        cov.setProfile({ name: 'B', increments: { ppm: 2 } });
+        cov.setAssignments([{ tag: 'co2', profile: 'B' }, { tag: 'meeting', profile: 'A' }]);
+        assert.equal(cov.resolve('z1_co2').profile, 'B', 'première ligne trouvée gagne');
+
+        cov.setAssignments([{ tag: 'meeting', profile: 'A' }, { tag: 'co2', profile: 'B' }]);
+        assert.equal(cov.resolve('z1_co2').profile, 'A');
+    });
+
+    test('une surcharge qui ne couvre pas l’unité laisse passer la suite', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        cov.setOverride('z1_temp', 'CO2 fin');
+        const r = cov.resolve('z1_temp');
+        assert.equal(r.increment, UNIT_DEFAULTS['°C']);
+        assert.equal(r.source, 'default', 'la provenance doit dire la vérité, pas « manual »');
+    });
+
+    test('la cadence et le battement viennent du profil qui a gagné', () => {
+        cov.setProfile({ name: 'bavard', increments: { ppm: 10 }, minIntervalMs: 5000, heartbeatMs: 60000 });
+        cov.setOverride('z1_co2', 'bavard');
+        const r = cov.resolve('z1_co2');
+        assert.equal(r.minIntervalMs, 5000);
+        assert.equal(r.heartbeatMs, 60000);
+        assert.equal(cov.resolve('z1_temp').minIntervalMs, 0,
+            'un point que le profil ne concerne pas ne doit pas hériter de son plafond');
+    });
+
+    test('les deux nombres de l’application en masse', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        const ids = Object.keys(ctx.global.get('bacnetPoints'));
+        const p = cov.preview('CO2 fin', ids);
+        assert.equal(p.considered, 6);
+        assert.equal(p.matchingCount, 2, 'seuls les deux points en ppm sont concernés');
+        assert.equal(p.notMatchingCount, 4);
+        assert.equal(p.manualCount, 0);
+
+        cov.setProfile({ name: 'autre', increments: { ppm: 30 } });
+        cov.setOverride('z1_co2', 'autre');
+        const p2 = cov.preview('CO2 fin', ids);
+        assert.equal(p2.manualCount, 1, 'la surcharge existante est le seul cas destructeur');
+    });
+
+    test('l’application en masse préserve les surcharges sauf demande explicite', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        cov.setProfile({ name: 'autre', increments: { ppm: 30 } });
+        cov.setOverride('z1_co2', 'autre');
+        const ids = Object.keys(ctx.global.get('bacnetPoints'));
+
+        const r1 = cov.applyToPoints('CO2 fin', ids);
+        assert.equal(r1.appliedCount, 1);
+        assert.equal(r1.skippedManual, 1);
+        assert.equal(cov.resolve('z1_co2').profile, 'autre', 'non écrasé');
+
+        const r2 = cov.applyToPoints('CO2 fin', ids, { overwriteManual: true });
+        assert.equal(r2.overwrittenManual, 1);
+        assert.equal(cov.resolve('z1_co2').profile, 'CO2 fin');
+    });
+
+    test('supprimer un profil emporte ses affectations et ses surcharges', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        cov.setAssignments([{ tag: 'meeting', profile: 'CO2 fin' }]);
+        cov.setOverride('z2_co2', 'CO2 fin');
+
+        const r = cov.deleteProfile('CO2 fin');
+        assert.equal(r.overridesDropped, 1);
+        assert.deepEqual(cov.assignments(), [], 'une affectation orpheline serait un réglage fantôme');
+        assert.equal(cov.resolve('z2_co2').source, 'default');
+    });
+
+    test('le socle ne peut pas être supprimé', () => {
+        assert.throws(() => cov.deleteProfile('default'), /socle/);
+    });
+
+    test('les réglages survivent au redémarrage par le magasin « file »', () => {
+        cov.setProfile({ name: 'CO2 fin', increments: { ppm: 10 } });
+        cov.setOverride('z1_co2', 'CO2 fin');
+
+        // Nouveau contexte, mêmes fichiers : c'est ce que fait un redémarrage.
+        const ctx2 = fakeContext();
+        seedCovPoints(ctx2.global);
+        for (const k of ['covProfiles', 'covTagAssignments', 'covOverrides']) {
+            ctx2.global.set(k, ctx.global.get(k, 'file'), 'file');
+        }
+        const cov2 = installCov(ctx2);
+        assert.equal(cov2.resolve('z1_co2').increment, 10);
+        assert.equal(cov2.resolve('z1_co2').source, 'manual');
+    });
+});
+
+describe('Validation des profils COV', () => {
+    test('le socle reste complet même amputé', () => {
+        const { profile, warnings } = sanitizeProfile({ name: 'default', increments: { '°C': 0.5 } },
+                                                     { isDefault: true });
+        assert.equal(profile.increments['°C'], 0.5);
+        assert.equal(profile.increments.ppm, UNIT_DEFAULTS.ppm, 'unité manquante rétablie');
+        assert.ok(warnings.length > 0);
+    });
+
+    test('les unités inconnues et les valeurs absurdes sont signalées, pas acceptées', () => {
+        const { profile, warnings } = sanitizeProfile({ name: 'x', increments: { kPa: 3, ppm: -1, lux: 5 } });
+        assert.deepEqual(Object.keys(profile.increments), ['lux']);
+        assert.equal(warnings.length, 2);
+    });
+
+    test('« default » est un nom réservé', () => {
+        assert.throws(() => sanitizeProfile({ name: 'default', increments: {} }), /réservé/);
+    });
+
+    test('un profil sans nom est refusé', () => {
+        assert.throws(() => sanitizeProfile({ increments: { ppm: 1 } }), /nom/);
+    });
+
+    test('un battement masqué par le plafond de cadence est signalé', () => {
+        const { warnings } = sanitizeProfile({ name: 'x', increments: { ppm: 1 },
+                                              minIntervalMs: 10000, heartbeatMs: 5000 });
+        assert.ok(warnings.some((w) => /masqué/.test(w)));
+    });
+
+    test('une affectation vers un profil inconnu est refusée', () => {
+        const ctx = fakeContext();
+        seedCovPoints(ctx.global);
+        const cov = installCov(ctx);
+        const r = cov.setAssignments([{ tag: 'meeting', profile: 'fantôme' }]);
+        assert.deepEqual(r.assignments, []);
+        assert.equal(r.warnings.length, 1);
+    });
+
+    test('le socle par défaut couvre toutes les unités du parc', () => {
+        const base = defaultProfile();
+        for (const unit of ['°C', '%', 'ppm', 'lux', 'bool']) {
+            assert.ok(base.increments[unit] !== undefined, `unité ${unit} absente du socle`);
+        }
+    });
+});
+
+describe('Plafond de cadence COV', () => {
+    test('sans plafond, tout passe', () => {
+        const s = {};
+        assert.equal(gateValue(s, 21.4, 0, 1000), 21.4);
+        assert.equal(gateValue(s, 21.5, 0, 1001), 21.5);
+    });
+
+    test('la fenêtre fermée retient la DERNIÈRE valeur, pas la première', () => {
+        const s = {};
+        assert.equal(gateValue(s, 1, 5000, 0), 1, 'première valeur appliquée immédiatement');
+        assert.equal(gateValue(s, 2, 5000, 1000), null);
+        assert.equal(gateValue(s, 3, 5000, 2000), null);
+        assert.equal(s.pending, 3, 'une valeur périmée ne doit jamais être livrée à sa place');
+
+        assert.equal(releasePending(s, 5000, 3000), undefined, 'fenêtre encore fermée');
+        assert.equal(releasePending(s, 5000, 5000), 3, 'libérée à l’ouverture');
+        assert.equal(releasePending(s, 5000, 6000), undefined, 'plus rien en attente');
+    });
+
+    test('rien n’est perdu : la valeur retenue finit par être appliquée', () => {
+        const s = {};
+        gateValue(s, 10, 1000, 0);
+        gateValue(s, 11, 1000, 500);
+        assert.equal(releasePending(s, 1000, 1000), 11);
+        assert.equal(s.lastApplied, 1000, 'la fenêtre repart de la libération');
+    });
+});

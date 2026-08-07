@@ -408,3 +408,160 @@ describe('Mode Démo / Test — vitesse du temps', () => {
         assert.ok(drift < 2000, `retour au temps réel attendu (écart ${drift} ms)`);
     });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Profils COV', () => {
+    /** Remet le sujet à zéro : le socle seul, aucune surcharge. */
+    async function reset() {
+        const s = await bms.covState();
+        for (const name of Object.keys(s.profiles)) {
+            if (name !== s.defaultProfileName) await bms.cov({ action: 'deleteProfile', name });
+        }
+        await bms.cov({ action: 'setAssignments', assignments: [] });
+        for (const id of Object.keys(s.overrides)) {
+            await bms.cov({ action: 'setOverride', pointId: id, profile: null });
+        }
+    }
+
+    test('l’état expose l’incrément effectif et sa provenance pour les 86 points', async () => {
+        await reset();
+        const s = await bms.covState();
+
+        assert.equal(Object.keys(s.points).length, 86);
+        assert.equal(s.connected, true, 'le harnais tourne sur le serveur BACnet de test');
+
+        const temp = s.points.f1_lobby_temp;
+        assert.equal(temp.unit, '°C');
+        assert.equal(temp.increment, s.unitDefaults['°C']);
+        assert.equal(temp.source, 'default');
+        // L'incrément est réellement posé dans l'appareil, pas seulement décidé.
+        assert.equal(temp.applied, temp.increment,
+            'le pilote doit avoir écrit COV_Increment sur l’objet distant');
+
+        const motion = s.points.f1_lobby_motion;
+        assert.equal(motion.unit, 'bool');
+        assert.equal(motion.applied, null, 'un binaire n’a pas de COV_Increment');
+
+        assert.ok(typeof temp.notifPerMin === 'number',
+            'la colonne notif/min doit être alimentée quand un serveur est connecté');
+    });
+
+    test('l’API publie ce que l’appareil sait faire — l’interface s’y conforme', async () => {
+        const s = await bms.covState();
+        assert.ok(s.capabilities, 'sans capacités, l’interface ne peut pas décider quoi afficher');
+        assert.equal(s.capabilities.subscribeCovProperty, true,
+            'le serveur de test annonce SubscribeCOVProperty');
+        assert.equal(s.capabilities.covIncrementSettable, true,
+            'donc les réglages d’incrément doivent être proposés : ' + s.capabilities.reason);
+        assert.ok(typeof s.capabilities.reason === 'string' && s.capabilities.reason.length > 0,
+            'la raison est affichée à l’utilisateur quand le réglage est masqué');
+    });
+
+    test('un profil creux appliqué à tout le parc ne touche que ses unités', async () => {
+        await reset();
+        const created = await bms.cov({
+            action: 'setProfile',
+            profile: { name: 'CO2 fin', increments: { ppm: 10 } },
+        });
+        assert.equal(created.status, 200);
+
+        const ids = Object.keys((await bms.covState()).points);
+        const p = await bms.cov({ action: 'preview', profile: 'CO2 fin', pointIds: ids });
+        assert.equal(p.status, 200);
+        // 13 zones, mais seules celles qui portent un capteur CO2 en ont un.
+        assert.equal(p.body.preview.matchingCount, 8,
+            'seuls les 8 points en ppm sont concernés — c’est ce que la confirmation doit annoncer');
+        assert.equal(p.body.preview.notMatchingCount, 78);
+        assert.equal(p.body.preview.manualCount, 0);
+
+        const applied = await bms.cov({
+            action: 'applyToPoints', profile: 'CO2 fin', pointIds: ids,
+        });
+        assert.equal(applied.body.applied.appliedCount, 8);
+        assert.equal(applied.body.applied.skippedNoUnit, 78);
+
+        const after = await bms.covState();
+        assert.equal(after.points.f1_lobby_co2.increment, 10);
+        assert.equal(after.points.f1_lobby_co2.source, 'manual');
+        assert.equal(after.points.f1_lobby_temp.increment, after.unitDefaults['°C'],
+            'un point d’une autre unité doit rester au socle');
+    });
+
+    test('l’incrément modifié atteint réellement l’appareil', async () => {
+        await reset();
+        await bms.cov({ action: 'setProfile', profile: { name: 'grossier', increments: { '°C': 1.5 } } });
+        const r = await bms.cov({ action: 'setOverride', pointId: 'f1_meet_temp', profile: 'grossier' });
+
+        assert.equal(r.status, 200);
+        assert.ok(r.body.pushed && r.body.pushed.written >= 1,
+            'toute édition doit repousser les incréments : ' + JSON.stringify(r.body.pushed));
+
+        const s = await bms.covState();
+        assert.equal(s.points.f1_meet_temp.increment, 1.5);
+        assert.equal(s.points.f1_meet_temp.applied, 1.5,
+            'sinon la bande morte reste celle de l’appareil, et le réglage est décoratif');
+    });
+
+    test('l’affectation par étiquette suit les points sans intervention', async () => {
+        await reset();
+        await bms.cov({ action: 'setProfile', profile: { name: 'CO2 fin', increments: { ppm: 7 } } });
+        const a = await bms.cov({
+            action: 'setAssignments', assignments: [{ tag: 'meeting', profile: 'CO2 fin' }],
+        });
+        assert.equal(a.status, 200);
+
+        const s = await bms.covState();
+        assert.equal(s.points.f1_meet_co2.increment, 7);
+        assert.equal(s.points.f1_meet_co2.source, 'tag:meeting');
+        assert.equal(s.points.f1_lobby_co2.source, 'default', 'les autres zones ne bougent pas');
+        // Le point porte l'étiquette mais son unité n'est pas dans le profil.
+        assert.equal(s.points.f1_meet_temp.source, 'default');
+    });
+
+    test('l’application en masse préserve les surcharges sauf case cochée', async () => {
+        await reset();
+        await bms.cov({ action: 'setProfile', profile: { name: 'A', increments: { ppm: 5 } } });
+        await bms.cov({ action: 'setProfile', profile: { name: 'B', increments: { ppm: 50 } } });
+        await bms.cov({ action: 'setOverride', pointId: 'f1_lobby_co2', profile: 'A' });
+
+        const ids = Object.keys((await bms.covState()).points);
+        const kept = await bms.cov({ action: 'applyToPoints', profile: 'B', pointIds: ids });
+        assert.equal(kept.body.applied.skippedManual, 1);
+        assert.equal((await bms.covState()).points.f1_lobby_co2.increment, 5, 'non écrasé');
+
+        const forced = await bms.cov({
+            action: 'applyToPoints', profile: 'B', pointIds: ids, overwriteManual: true,
+        });
+        assert.equal(forced.body.applied.overwrittenManual, 1);
+        assert.equal((await bms.covState()).points.f1_lobby_co2.increment, 50);
+    });
+
+    test('les refus sont explicites', async () => {
+        const unknown = await bms.cov({ action: 'setOverride', pointId: 'point_inexistant', profile: 'default' });
+        assert.equal(unknown.status, 400);
+        assert.match(unknown.body.error, /point inconnu/);
+
+        const reserved = await bms.cov({ action: 'setProfile', profile: { name: 'default', increments: {} } });
+        assert.equal(reserved.status, 200, 'éditer le socle est permis');
+
+        const gone = await bms.cov({ action: 'deleteProfile', name: 'default' });
+        assert.equal(gone.status, 400);
+        assert.match(gone.body.error, /socle/);
+
+        const nonsense = await bms.cov({ action: 'faire_le_café' });
+        assert.equal(nonsense.status, 400);
+        assert.match(nonsense.body.error, /action attendue/);
+    });
+
+    test('les règles continuent de voir bouger le bâtiment', async () => {
+        // Une bande morte ne doit pas couper le lien : le socle reste assez fin
+        // pour que la boucle présence → éclairage réagisse comme avant.
+        await reset();
+        await bms.sensor('f2_off2_motion', true);
+        await bms.expectPoint('f2_off2_lamp', true, {
+            timeout: 25000, label: 'lampe allumée malgré les bandes mortes',
+        });
+        await bms.sensor('f2_off2_motion', false);
+    });
+});

@@ -10,13 +10,14 @@ limitations connues, `packaging/` pour la distribution.
 
 ## Où en est le système
 
-Déployé et vérifié : 55 tests verts (`node --test --test-concurrency=1 test/`),
+Déployé et vérifié : 93 tests verts (`node --test --test-concurrency=1 test/`),
 Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 
 | Brique | État |
 |---|---|
 | Cœur extrait dans `lib/bms-core/` | fait |
-| Harnais de tests (scénarios + unitaires) | fait, 55 tests |
+| Harnais de tests (scénarios + unitaires) | fait, 93 tests |
+| Profils COV par abonnement (SubscribeCOVProperty) | fait, pire cas 6,1/s → 2,8/s |
 | Mode Démo/Test (horloge accélérée) | fait, dans Settings |
 | Couche pilote, écritures async, qualité/péremption | fait |
 | Enveloppe de sécurité (traçabilité, cadence, approbation) | fait |
@@ -40,10 +41,16 @@ de la suivante.
    références de zone des règles existantes — et rend la régénération de la
    graine sans objet : il faudra plutôt **décider ce que contient la
    configuration de démonstration livrée** une fois les règles effacées.
-1. **Profils COV** (§ 2) — indépendant, et referme le sujet du volume de
-   notifications.
-2. **Taxonomie des étiquettes, zones et groupes** (§ 3) — le registre de zones
-   est l'endroit où vivront les paramètres thermiques et les surfaces vitrées.
+1. ~~**Profils COV** (§ 2)~~ — **fait le 2026-08-07**. Le sujet du volume de
+   notifications est refermé, mais pas comme prévu : les « ~20/s » annoncés
+   étaient une estimation fausse (cf. § 2). Gain réel mesuré : ×2 avec le socle,
+   ×5 avec un profil grossier, sur un bâtiment entier en convergence.
+2. **Taxonomie des étiquettes, zones et groupes** (§ 3) — **prochaine étape**.
+   Le registre de zones est l'endroit où vivront les paramètres thermiques et
+   les surfaces vitrées. À savoir avant de commencer : les profils COV
+   s'affectent par étiquette (`covTagAssignments`), donc typer les étiquettes
+   touche aussi ce mécanisme — une étiquette renommée doit entraîner son
+   affectation, sinon le profil devient un réglage fantôme.
 3. **Modèle thermique 2C + bruit** (§ 4) — sans lui, aucun estimateur n'est
    vérifiable : les données ne contiendraient pas ce qu'on cherche à retrouver.
 4. **Irradiance** (§ 5) — le solaire est le principal facteur de confusion de
@@ -79,69 +86,194 @@ Deux défauts trouvés au passage et corrigés :
   corrige aussi la régression du journal des commandes (les écritures réussies
   n'étaient plus tracées).
 
-## 2. Profils COV
+## 2. Profils COV — FAIT (2026-08-07)
+
+Logique dans `lib/bms-core/cov.js`, API `GET/POST /bms/cov`, patch de flow dans
+`tools/patches/10-cov-profiles.js` et `11-cov-capability-gating.js`, 38 tests de
+plus (93 au total).
+
+### Correction : les ~20/s n'ont jamais existé
+
+La section d'origine annonçait « ~20/s, la physique remue 86 points toutes les
+2 s ». C'était une **estimation théorique, et elle était fausse** : la boucle de
+publication du serveur (étape 3 de `tick()`) ne rappelle `setValue` que si la
+valeur arrondie au dixième a **changé**. Un point immobile ne produit donc
+aucune notification, avec ou sans bande morte.
+
+Mesures réelles, 40 s, les 13 zones poussées à 27 °C — le pire cas, tout le
+bâtiment en convergence :
+
+| Réglage | Notifications | Débit | Réduction |
+|---|---|---|---|
+| aucune bande morte (objets **et** abonnements) | 256 | **6,1/s** | — |
+| socle : 0,2 °C · 2 % · 25 ppm · 20 lux | 120 | **2,8/s** | ×2,2 |
+| socle, °C porté à 1,0 | 48 | **1,2/s** | ×5,3 |
+
+Bâtiment au repos, mêmes conditions : ~0,5/s, et la bande morte n'y change
+presque rien puisqu'il n'y a rien à supprimer.
+
+Le socle divise donc le pire cas par **deux**, et un profil plus grossier par
+**cinq**. C'est réel, mesuré, et bien plus modeste que ce que la spécification
+laissait espérer — parce que le simulateur se flattait déjà lui-même.
+
+**Là où le mécanisme compte vraiment, c'est en face de matériel réel** : un
+automate n'a pas notre logique de publication sur changement, et une sonde à
+0,05 °C de résolution frémit en permanence.
 
 ### Sémantique retenue
 
 Un profil est une **table creuse unité → incrément**, pas un réglage scalaire :
 
 ```json
-{ "name": "CO2 fin", "increments": { "ppm": 10 } }
+{ "name": "CO2 fin", "increments": { "ppm": 10 }, "minIntervalMs": 0, "heartbeatMs": 0 }
 ```
 
-Le profil « default » couvre toutes les unités et sert de socle :
+Le profil « default » couvre toutes les unités et sert de socle : °C 0,2 · % 2 ·
+ppm 25 · lux 20 · bool (toute transition). Il ne peut pas être supprimé, et une
+unité qui en disparaîtrait est rétablie à sa valeur par défaut — un point dont
+l'unité n'est couverte par rien n'aurait aucune bande morte du tout.
 
-| Unité | Incrément par défaut |
-|---|---|
-| °C | 0.2 |
-| % | 2 |
-| ppm | 25 |
-| lux | 20 |
-| bool | (toute transition) |
+Un profil nommé n'a d'effet sur un point que s'il définit l'unité de ce point :
+appliquer « CO2 fin » aux 86 points n'en touche que **8**, ce que la
+confirmation annonce explicitement.
 
-Un profil nommé n'a d'effet sur un point que s'il définit l'unité de ce point.
-C'est pourquoi appliquer « CO2 fin » à une sélection de 40 points n'en touche
-que les 8 en ppm — comportement correct, à énoncer clairement dans l'interface.
+**Précédence** : surcharge par point → affectation par étiquette (liste
+**ordonnée**, première ligne trouvée gagne) → socle. La chaîne est parcourue
+dans cet ordre et le premier profil qui définit l'unité gagne — pour l'incrément
+comme pour la cadence. Une surcharge qui ne couvre pas l'unité du point laisse
+donc passer la suite, et la provenance renvoyée dit la vérité (`default`) plutôt
+que `manual`.
 
-**Précédence** : surcharge par point → affectation par étiquette → défaut par
-unité. L'affectation par étiquette est le mécanisme principal (les nouveaux
-points héritent tout seuls) ; l'application en masse sert aux exceptions.
+Supprimer un profil emporte ses affectations et ses surcharges : une référence
+pendante serait un réglage fantôme, exactement ce qu'on ne diagnostique jamais.
 
-Un profil devrait porter plus que l'incrément :
-- `minIntervalMs` — plafond de cadence, contre un capteur bavard ;
-- `heartbeatMs` — re-notification périodique même sans changement, pour
-  distinguer « rien n'a bougé » de « le lien est mort ».
+### Où chaque réglage est réellement appliqué
+
+**Correction d'une erreur de ma part** (2026-08-07) : j'avais écrit qu'il était
+« impossible » de porter l'incrément dans l'abonnement, après avoir vu que
+l'enveloppe `client.subscribeProperty()` de la bibliothèque n'a pas de paramètre
+d'incrément. J'ai généralisé d'une limite de bibliothèque à une limite de
+protocole, et c'était faux. **SubscribeCOVProperty transporte bien un
+`covIncrement`** (étiquette de contexte 5), et SubscribeCOVPropertyMultiple en
+place un par propriété surveillée.
+
+C'est le bon mécanisme, et c'est celui qui est implémenté :
+
+- `increment` → **SubscribeCOVProperty**, l'incrément dans la requête
+  d'abonnement. Le serveur range l'enregistrement sous la clé
+  *adresse du client + subscriberProcessIdentifier + objet + propriété*, avec une
+  **valeur de référence propre à cet abonnement**. Deux superviseurs peuvent donc
+  suivre le même capteur à des seuils différents sans se gêner — ce qu'écrire la
+  propriété `COV_Increment` de l'objet ne permet pas, puisque cela vaudrait pour
+  tout le monde à la fois. L'identifiant de processus est **stable par point**,
+  donc réémettre une requête met l'abonnement à jour au lieu d'en empiler un
+  second (vérifié : 86 abonnements, jamais 87).
+- `minIntervalMs` et `heartbeatMs` → appliqués **côté BMS**, dans le pilote :
+  SubscribeCOVProperty ne les transporte pas. Le plafond de cadence **retarde**
+  un point bavard et conserve la dernière valeur reçue (rien n'est perdu, et
+  jamais une valeur périmée livrée à la place d'une plus récente) ; le battement
+  de cœur **relit** un point resté silencieux trop longtemps, ce qui est la seule
+  façon honnête d'obtenir la même information d'un automate qui n'émet rien de
+  lui-même. `SubscribeCOVPropertyMultiple` a un `maxNotificationDelay` proche du
+  plafond de cadence — le jour où ce service sera encodable, la comparaison
+  vaudra d'être refaite.
+
+### Un service facultatif, donc une interface qui s'adapte
+
+SubscribeCOVProperty est facultatif. Le pilote lit
+**`Protocol_Services_Supported`** à la connexion et publie
+`capabilities.covIncrementSettable` ; l'API le relaie, et les deux interfaces
+**masquent les réglages d'incrément** quand l'appareil ne sait pas les recevoir,
+en affichant pourquoi. Afficher des commandes sans effet serait pire que ne rien
+afficher. Restent visibles dans tous les cas le plafond de cadence, le battement
+de cœur (côté BMS) et la colonne notif/min (une mesure, pas un réglage).
+
+Sans le service, le pilote retombe sur SubscribeCOV simple : on perd le réglage,
+jamais les mesures. `--no-cov-property` fait jouer ce rôle au simulateur, et
+trois tests couvrent ce chemin dégradé.
+
+Le simulateur pose aussi les incréments par unité sur ses objets dès
+`buildObjects()` : c'est ce que voient les clients en SubscribeCOV simple, et le
+repli quand une requête ne porte pas d'incrément. `--no-cov-deadband` les remet à
+zéro (c'est la première ligne du tableau ci-dessus).
+
+### Ce qu'il a fallu contourner dans les bibliothèques
+
+Deux contournements, tous deux confinés et commentés sur place. Ce sont les
+points à revérifier à chaque montée de version.
+
+1. **Côté client** — `@bacnet-js/client` sait encoder ET décoder l'incrément
+   (`SubscribeProperty`, étiquette 5), mais son enveloppe publique appelle
+   l'encodeur avec `covIncrementPresent = false` et jette au passage le
+   `lifetime` qu'on lui passe. `lib/bms-core/drivers/cov-property.js` substitue
+   l'encodeur le temps d'un appel, avec les deux arguments manquants, et vérifie
+   son arité au chargement pour échouer bruyamment si la signature change.
+2. **Côté serveur** — `@bacnet-js/device` répond « service non supporté » à
+   SubscribeCOVProperty, et garde son client BACnet dans un champ privé sans
+   accesseur. `lib/bacnet-sim/server.js` remplace `.default` du module client
+   *avant* de charger le module device, pour que celui-ci construise une
+   sous-classe qui se signale ; on peut alors remplacer son écouteur.
+   `lib/bacnet-sim/cov-property.js` tient la vraie table d'abonnements.
+
+**Non implémenté : SubscribeCOVPropertyMultiple.** La bibliothèque n'a aucun
+encodeur pour ce service (contrairement au simple), et son
+`ServicesSupportedBitString` est construit sur 40 bits alors que le service est
+le bit 41 — il ne pourrait même pas être annoncé. L'implémenter demanderait
+d'écrire à la main l'ASN.1 imbriqué de `listOfCOVSubscriptionSpecifications`.
+Le service simple suffit à régler un incrément par point ; le multiple ne
+ferait qu'économiser des requêtes (86 aujourd'hui) et apporterait
+`maxNotificationDelay`.
+
+**Deux pièges à connaître :**
+
+- Le décodeur de la bibliothèque rend `covIncrement: 0` aussi bien pour
+  « étiquette absente » que pour « incrément explicitement nul » : la distinction
+  est perdue avant nous. Le simulateur tranche comme la norme le fait pour
+  l'absence — repli sur le `COV_Increment` de l'objet — et notifie toute
+  transition pour un binaire, où l'incrément n'a pas de sens.
+- Les bitstrings de cette bibliothèque sont en poids **faible** d'abord dans sa
+  représentation interne (elle retourne les octets à l'encodage comme au
+  décodage, donc le fil reste conforme). Le décodage des capacités vérifie le bit
+  ReadProperty, obligatoire, comme témoin : s'il ne ressort pas, c'est notre
+  lecture qui est fausse, et le pilote le dit au lieu d'annoncer tranquillement
+  que rien n'est supporté.
 
 ### Interface
 
-**Page BACnet** : section « CoV profiles » — édition du profil par défaut
-(une ligne par unité) et création de profils nommés.
+**Page BACnet**, section « CoV Profiles » : édition du socle (une ligne par
+unité), création et suppression de profils nommés, affectations par étiquette
+avec réordonnancement, et trois compteurs — notifications/min tous points,
+surcharges par point, réglages pas encore descendus dans l'appareil.
 
-**Device & Tag Manager** : nouvelle colonne montrant l'incrément **effectif**
-et sa **provenance** (`0.2 °C · défaut`, `10 ppm · tag:meeting`,
-`0.5 °C · manuel`). Sans la provenance, personne ne peut expliquer pourquoi un
-point se comporte autrement que son voisin. Menu déroulant pour la surcharge
-par point.
+**Device & Tag Manager** : colonne « CoV increment » portant l'incrément
+effectif **et sa provenance** (`0.2 °C · default`, `10 ppm · tag:meeting`,
+`1.5 °C · manual`), avec menu déroulant de surcharge par point ; colonne
+**notif/min** (fenêtre glissante d'une heure) **triable** — c'est la façon
+concrète de trouver le point mal réglé au milieu de 86. La colonne et
+l'application en masse disparaissent quand l'appareil n'accepte pas de réglage
+d'incrément.
 
-Ajouter une colonne **notifications/min mesurée** (fenêtre glissante d'une
-heure) : trier dessus est la façon concrète de trouver un point mal réglé.
-
-**Application en masse** : bouton « appliquer un profil aux appareils visibles »
-à côté des compteurs existants. Confirmation en distinguant **deux** nombres :
+**Application en masse** aux appareils visibles, avec la confirmation à deux
+nombres :
 
 > Appliquer « CO2 fin » à **8 des 40** appareils visibles.
 > 32 n'ont aucun point en ppm et ne sont pas concernés.
 > ⚠ 3 des 8 portent déjà une surcharge manuelle, qui sera écrasée.
 
-Le second nombre est le seul cas destructeur : il mérite une case à cocher
-explicite, pas un écrasement silencieux.
+Le second nombre est le seul cas destructeur : il est derrière une case à cocher,
+et sans elle les surcharges existantes sont conservées et comptées comme telles.
 
-### Côté serveur
+### Reste à faire, si le besoin apparaît
 
-`covIncrement` n'est pas encore posé sur les objets du simulateur — c'est
-pourquoi le volume de notifications reste élevé (~20/s, la physique remue 86
-points toutes les 2 s). À implémenter dans `buildObjects()`
-(`lib/bacnet-sim/server.js`) et à transmettre à `subscribeCov` côté pilote.
+- **SubscribeCOVPropertyMultiple** (cf. ci-dessus) : encodeur à écrire.
+- `Active_COV_Subscriptions` du simulateur ne montre que les abonnements de la
+  bibliothèque, pas les nôtres — sa table interne est privée. Le canal de
+  contrôle (`GET /covsubs`) donne la vue complète, et c'est ce que les tests
+  interrogent.
+- Aucune interface pour `pointStaleAfter` : le battement de cœur rafraîchit
+  `lastSeen`, mais rien ne signale encore visuellement un point périmé.
+- Les profils ne s'appliquent qu'aux points matériels ; les points virtuels ne
+  passent pas par BACnet et n'ont donc pas de notion de bande morte.
 
 ---
 
