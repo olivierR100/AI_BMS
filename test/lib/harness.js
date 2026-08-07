@@ -70,8 +70,24 @@ class BmsClient {
     async point(id)  { return (await this.#json('GET', `/bms/points?id=${encodeURIComponent(id)}`)).body; }
     async syslog(q = '') { return (await this.#json('GET', `/bms/syslog${q}`)).body; }
 
-    /** Écrit un point matériel simulé, comme le ferait un capteur réel. */
+    /**
+     * Force un capteur, comme le ferait le panneau « Sensor Simulation ».
+     *
+     * En mode BACnet, cela passe par le canal de contrôle du simulateur : le
+     * modèle physique est en amont du réseau, et écrire la table locale du BMS
+     * ne ferait que diverger du serveur jusqu'à la prochaine notification COV.
+     */
     async sensor(id, value) {
+        if (this.controlPort) {
+            const res = await fetch(`http://127.0.0.1:${this.controlPort}/force`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ id, value }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(`sensor(${id}) → ${JSON.stringify(body)}`);
+            return body;
+        }
         const r = await this.#json('POST', '/bms/points', { id, value, simulate: true });
         if (r.status !== 200) throw new Error(`sensor(${id}) → ${r.status} ${JSON.stringify(r.body)}`);
         return r.body;
@@ -191,10 +207,22 @@ function prepareUserDir(dir, port, { seed = true } = {}) {
  * chargées et que les états internes soient enregistrés — sans quoi les
  * premiers tests courent contre un système à moitié éveillé.
  */
-async function startInstance({ seed = true, quiet = true } = {}) {
+async function startInstance({ seed = true, quiet = true, bacnet = true } = {}) {
     const port = await freePort();
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bms-test-'));
     prepareUserDir(dir, port, { seed });
+
+    // Serveur BACnet de test, un par instance. Les ports et l'identifiant de
+    // device sont tirés à part pour que deux exécutions simultanées ne se
+    // marchent pas dessus — c'est aussi pourquoi on se connecte en mode
+    // « real » plutôt que « simulated » : ce dernier code en dur 47810/1234.
+    let simChild = null;
+    let simPort = null, controlPort = null, deviceId = null;
+    if (bacnet) {
+        simPort = await freePort();
+        controlPort = await freePort();
+        deviceId = 4000 + (simPort % 1000);
+    }
 
     const logPath = path.join(dir, 'node-red.log');
     const log = fs.openSync(logPath, 'a');
@@ -207,15 +235,44 @@ async function startInstance({ seed = true, quiet = true } = {}) {
         detached: false,
     });
 
+    if (bacnet) {
+        simChild = spawn('node', [
+            path.join(REPO, 'lib', 'bacnet-sim', 'server.js'),
+            '--port', String(simPort),
+            '--device-id', String(deviceId),
+            '--control-port', String(controlPort),
+            '--interface', '127.0.0.1',
+            '--tick', '1500',
+            '--quiet',
+        ], { stdio: ['ignore', log, log], cwd: REPO });
+    }
+
     const client = new BmsClient(`http://127.0.0.1:${port}`);
+    client.controlPort = controlPort;   // force les capteurs via le simulateur
     const instance = {
         port, dir, child, client, logPath,
+        simPort, controlPort, deviceId,
         readLog: () => fs.readFileSync(logPath, 'utf8'),
+
+        /** Force un capteur par le canal de contrôle du simulateur. */
+        async forceSensor(id, value) {
+            const res = await fetch(`http://127.0.0.1:${controlPort}/force`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ id, value }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(`forceSensor(${id}) → ${JSON.stringify(body)}`);
+            return body;
+        },
+
         async stop() {
-            if (child.exitCode === null && !child.killed) {
-                child.kill('SIGTERM');
-                for (let i = 0; i < 20 && child.exitCode === null; i++) await sleep(250);
-                if (child.exitCode === null) child.kill('SIGKILL');
+            for (const c of [simChild, child]) {
+                if (c && c.exitCode === null && !c.killed) {
+                    c.kill('SIGTERM');
+                    for (let i = 0; i < 20 && c.exitCode === null; i++) await sleep(250);
+                    if (c.exitCode === null) c.kill('SIGKILL');
+                }
             }
             fs.closeSync(log);
             fs.rmSync(dir, { recursive: true, force: true });
@@ -245,9 +302,39 @@ async function startInstance({ seed = true, quiet = true } = {}) {
         throw new Error(`instance non prête après 90 s\n${tail}`);
     }
 
+    // Brancher le BMS sur le serveur BACnet de test. À partir de là les valeurs
+    // arrivent par notification COV : c'est le chemin réel, celui qui remplacera
+    // la table en mémoire.
+    if (bacnet) {
+        const deadline2 = Date.now() + 60000;
+        let connected = false, lastError = null;
+        while (Date.now() < deadline2) {
+            try {
+                const res = await fetch(`http://127.0.0.1:${port}/bms/bacnet`, {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: 'real', host: '127.0.0.1', port: simPort, deviceId,
+                    }),
+                });
+                const body = await res.json();
+                if (res.ok && body.driver && body.driver.connected) { connected = true; break; }
+                lastError = body.error || JSON.stringify(body).slice(0, 200);
+            } catch (e) { lastError = e.message; }
+            await sleep(1000);
+        }
+        if (!connected) {
+            const tail = instance.readLog().slice(-1500);
+            await instance.stop();
+            throw new Error(`connexion au serveur BACnet de test impossible : ${lastError}\n${tail}`);
+        }
+    }
+
     // Laisse un cycle de physique et un cycle de règles se produire.
-    await sleep(2500);
-    if (!quiet) console.log(`  instance de test prête sur le port ${port} (${dir})`);
+    await sleep(3000);
+    if (!quiet) {
+        console.log(`  instance prête — Node-RED ${port}, BACnet ${simPort} (device ${deviceId})`);
+    }
     return instance;
 }
 

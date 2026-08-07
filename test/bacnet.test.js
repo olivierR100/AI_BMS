@@ -20,6 +20,7 @@ const installPoints = require('../lib/bms-core/points');
 const REPO = path.resolve(__dirname, '..');
 const SERVER_PORT = 47820;
 const CLIENT_PORT = 47821;
+const CONTROL_PORT = 47822;   // distinct du simulateur de développement (47811)
 const DEVICE_ID = 4321;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -59,6 +60,7 @@ before(async () => {
     server = spawn('node', [
         path.join(REPO, 'lib/bacnet-sim/server.js'),
         '--port', String(SERVER_PORT), '--device-id', String(DEVICE_ID),
+        '--control-port', String(CONTROL_PORT),
         '--interface', '127.0.0.1', '--tick', '1500', '--quiet',
     ], { stdio: ['ignore', 'pipe', 'pipe'], cwd: REPO });
 

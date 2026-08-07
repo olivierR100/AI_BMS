@@ -286,6 +286,7 @@ describe('Enveloppe de sécurité', () => {
                 name: 'fake-bacnet', isHealthy: () => true,
                 read: () => ({ value: 1 }), write: (i, v) => Promise.resolve({ ok: true, value: v }),
             });
+            ctx.global.set('bacnetMode', 'real');   // le portail ne vise que le matériel réel
             ctx.global.set('pointDrivers', { setpoint: 'fake-bacnet' });
 
             const blocked = safety.checkApproval(configTouching('setpoint'));
@@ -304,6 +305,7 @@ describe('Enveloppe de sécurité', () => {
                 name: 'fake-bacnet', isHealthy: () => true,
                 read: () => ({ value: 1 }), write: (i, v) => Promise.resolve({ ok: true, value: v }),
             });
+            ctx.global.set('bacnetMode', 'real');   // le portail ne vise que le matériel réel
             ctx.global.set('pointDrivers', { lamp: 'fake-bacnet' });
 
             const BMS = ctx.global.get('BMS');
@@ -318,6 +320,7 @@ describe('Enveloppe de sécurité', () => {
                 name: 'fake-bacnet', isHealthy: () => true,
                 read: () => ({ value: 1 }), write: (i, v) => Promise.resolve({ ok: true, value: v }),
             });
+            ctx.global.set('bacnetMode', 'real');   // le portail ne vise que le matériel réel
             ctx.global.set('pointDrivers', { temp_zone: 'fake-bacnet' });
 
             const verdict = safety.checkApproval({

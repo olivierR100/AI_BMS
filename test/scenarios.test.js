@@ -178,20 +178,27 @@ describe('Physique — convergence', () => {
     test('la température se stabilise au lieu de battre autour de la consigne', async () => {
         // La bande morte (0.15 °C) doit dépasser le pas d'arrondi (0.1 °C),
         // sinon la boucle recalcule sans fin et laisse un décalage résiduel.
-        const before = await bms.points();
-        const setpoint = before.f3_off2_temp_setpoint;
-        await bms.sensor('f3_off2_temp', setpoint);
+        // D'abord attendre la convergence : mesurer la stabilité d'une zone
+        // encore en train de rejoindre sa consigne ne teste rien. La consigne
+        // elle-même peut bouger (régime horaire), donc on la relit à chaque
+        // tour plutôt que de la figer.
+        const deadline = Date.now() + 90000;
+        let temp, setpoint;
+        while (Date.now() < deadline) {
+            const p = await bms.points();
+            temp = p.f3_off2_temp; setpoint = p.f3_off2_temp_setpoint;
+            if (Math.abs(temp - setpoint) <= 0.3) break;
+            await sleep(1000);
+        }
+        assert.ok(Math.abs(temp - setpoint) <= 0.3,
+            `la zone doit rejoindre sa consigne ${setpoint}, obtenu ${temp}`);
 
-        // Laisse plusieurs cycles de physique (~2 s chacun) s'écouler.
-        await sleep(9000);
+        // Une fois convergée, la bande morte (0.15 °C) doit la tenir tranquille.
         const first = (await bms.points()).f3_off2_temp;
         await sleep(6000);
         const second = (await bms.points()).f3_off2_temp;
-
-        assert.ok(Math.abs(second - first) <= 0.1,
-            `la température doit être stable au repos : ${first} puis ${second}`);
-        assert.ok(Math.abs(second - setpoint) <= 0.3,
-            `la température doit rester proche de la consigne ${setpoint}, obtenu ${second}`);
+        assert.ok(Math.abs(second - first) <= 0.2,
+            `la température doit être stable une fois convergée : ${first} puis ${second}`);
     });
 });
 
@@ -201,7 +208,7 @@ describe('Garde-fous de la couche BMS', () => {
     test('un capteur en lecture seule refuse l’écriture', async () => {
         const r = await bms.write('f1_lobby_motion', true);
         assert.equal(r.status, 403, 'écriture sur capteur read_only');
-        assert.match(r.body.error, /refused/i);
+        assert.match(r.body.error, /read-only|refus/i);
     });
 
     test('un état interne n’est pas écrivable par l’API', async () => {

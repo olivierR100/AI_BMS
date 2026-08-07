@@ -28,70 +28,29 @@ Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 
 ---
 
-## 1. Supprimer le mode « internal » — À FAIRE EN PREMIER
+## 1. Supprimer le mode « internal » — FAIT (2026-08-07)
 
-Objectif : une seule source de points, BACnet. Le mode `internal` (table en
-mémoire + physique dans Node-RED) fait doublon avec le serveur BACnet simulé et
-double le nombre de chemins à maintenir.
+Une seule source de points désormais : BACnet. Modes `simulated` | `real` |
+`disconnected`.
 
-**L'ordre compte : le harnais d'abord.** Tant que `internal` existe encore, il
-sert de filet pendant qu'on bascule les tests.
+- Harnais converti en premier : chaque exécution démarre son propre serveur
+  BACnet (ports et device id tirés à part) et connecte le BMS en mode `real`.
+  `client.sensor()` passe par le canal de contrôle du simulateur.
+- Nœud `Physics Simulator` et son inject supprimés : la physique ne vit plus que
+  dans le serveur BACnet.
+- Connexion automatique au serveur simulé 8 s après le démarrage, avec garde :
+  ne jamais écraser une connexion déjà établie.
+- 55 tests verts, tous à travers BACnet.
 
-### 1.1 Harnais (`test/lib/harness.js`)
-
-`startInstance()` doit démarrer un serveur BACnet par exécution :
-
-- allouer un **second port libre** (`freePort()`) pour BACnet, un **troisième**
-  pour le canal de contrôle ;
-- `spawn` de `lib/bacnet-sim/server.js` avec un `--device-id` propre à
-  l'exécution (éviter les collisions entre exécutions parallèles) ;
-- attendre Node-RED, puis
-  `POST /bms/bacnet {mode:'real', host:'127.0.0.1', port, deviceId}`.
-
-> **Utiliser `real`, pas `simulated`** : le mode `simulated` code en dur
-> 127.0.0.1:47810 / device 1234 (`SIM_DEFAULTS` dans le nœud `API: bacnet`).
-> Deux exécutions simultanées entreraient en collision.
-
-- `stop()` doit arrêter les deux processus.
-
-**Attendre des tests plus lents.** Les valeurs transitent désormais par une
-notification COV au lieu d'une mutation en mémoire. Prévoir d'élargir certains
-`expectPoint` (surtout `Ventilation — paliers CO2`, qui enchaîne quatre
-transitions). Ne pas masquer une régression derrière un timeout : si une
-attente dépasse ~20 s, chercher la cause.
-
-**Faire passer les 55 tests en mode BACnet avant de supprimer quoi que ce soit.**
-
-### 1.2 Suppressions (une fois le harnais vert)
-
-| Quoi | Où |
-|---|---|
-| Nœud `Physics Simulator` + son inject `Physics ~2s` | `flows.json` (via `tools/flowkit.js`) |
-| Branche `internal` du nœud `Write` | `flows.json` |
-| `'internal'` de l'énumération de modes | nœud `API: bacnet` |
-| Champ `physicsLocal` de l'état renvoyé | nœud `API: bacnet` |
-| Bouton « Internal simulation » | `bacnet_conn_ui` |
-| Textes qui renvoient au mode interne | `bacnet_conn_ui`, groupe `Sensor Simulation` |
-
-`runPhysicsTick` reste exporté : le serveur de test en dépend.
-
-### 1.3 Décider du démarrage à froid
-
-Sans mode interne, un démarrage sans connexion n'a aucune donnée vivante — les
-points gardent les valeurs initiales de `points.js`, figées.
-
-Recommandation : **tenter automatiquement le serveur simulé au démarrage**
-(`SIM_DEFAULTS`), et afficher clairement « aucune source connectée » en cas
-d'échec. Sinon la première expérience d'un nouvel utilisateur est un bâtiment
-gelé sans explication. Penser à `bms-sim-start` dans la documentation
-d'installation.
-
-### 1.4 Documentation à reprendre
-
-`CLAUDE.md` (§ BACnet/IP), `packaging/UTILISATION.md`, `packaging/INSTALLATION.md`
-— toutes mentionnent le mode interne comme défaut.
-
----
+Deux défauts trouvés au passage et corrigés :
+- le portail d'approbation traitait les états internes (`st_*`) comme du
+  matériel réel, et aurait exigé une approbation pour toute configuration en
+  mode simulé. Il ne vise plus que `bacnetMode === 'real'` et les points
+  réellement présents dans `bacnetPoints` ;
+- droits d'accès, bornes et cadence n'étaient appliqués que sur la voie
+  synchrone. Ils sont désormais dans `writeValueAsync`, avant le pilote — ce qui
+  corrige aussi la régression du journal des commandes (les écritures réussies
+  n'étaient plus tracées).
 
 ## 2. Profils COV
 
@@ -181,11 +140,6 @@ désormais dans le résultat d'outil, donc l'assistant se corrige dans le tour.
 
 ## 4. Dettes connues
 
-- **Régression** : depuis que `Safety Guard` écrit en asynchrone, les écritures
-  **réussies** ne sont plus journalisées — seuls les échecs le sont. Le journal
-  des commandes est donc aveugle, alors que c'est précisément là que la
-  pathologie « Business Hours » aurait dû se voir. Corriger dans le chemin
-  `io.write` ou dans la branche succès de `Safety Guard`.
 - **Documentation française** : `INSTALLATION.md` et `UTILISATION.md` ne
   couvrent ni le mode BACnet, ni `bms-sim-start`, ni la page BACnet Server.
 - **Reliquats P2 de l'audit** : humidité jamais simulée, `loc_timezone`
