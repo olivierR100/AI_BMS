@@ -33,19 +33,24 @@ Node-RED sur 1880, serveur BACnet de test sur 47810 (contrôle 47811).
 Les dépendances comptent plus que les priorités : chaque étape est un prérequis
 de la suivante.
 
-1. **Régénérer la graine** — elle est périmée, tout le reste partirait d'un état
-   faux (§ 9).
-2. **Profils COV** (§ 2) — indépendant, et referme le sujet du volume de
+0. **Le jeu de règles actuel est jetable** (décision du 2026-08-07). Aucune
+   migration de règles à prévoir : les 135 règles produites par DeepSeek servent
+   de cas d'étude à l'analyseur, pas de patrimoine. Cela retire la contrainte la
+   plus lourde du § 3 — le registre d'étiquettes n'a pas à préserver les
+   références de zone des règles existantes — et rend la régénération de la
+   graine sans objet : il faudra plutôt **décider ce que contient la
+   configuration de démonstration livrée** une fois les règles effacées.
+1. **Profils COV** (§ 2) — indépendant, et referme le sujet du volume de
    notifications.
-3. **Taxonomie des étiquettes, zones et groupes** (§ 3) — le registre de zones
+2. **Taxonomie des étiquettes, zones et groupes** (§ 3) — le registre de zones
    est l'endroit où vivront les paramètres thermiques et les surfaces vitrées.
-4. **Modèle thermique 2C + bruit** (§ 4) — sans lui, aucun estimateur n'est
+3. **Modèle thermique 2C + bruit** (§ 4) — sans lui, aucun estimateur n'est
    vérifiable : les données ne contiendraient pas ce qu'on cherche à retrouver.
-5. **Irradiance** (§ 5) — le solaire est le principal facteur de confusion de
+4. **Irradiance** (§ 5) — le solaire est le principal facteur de confusion de
    l'identification ; l'ajouter après coup fausserait les paramètres déjà tirés.
-6. **Identification thermique** (§ 6), en commençant par le niveau 0, qui sert
+5. **Identification thermique** (§ 6), en commençant par le niveau 0, qui sert
    aussi de repli permanent.
-7. **Localisation** (§ 7) et **bonnes pratiques en outil** (§ 8) — sans
+6. **Localisation** (§ 7) et **bonnes pratiques en outil** (§ 8) — sans
    dépendance, à intercaler quand cela arrange.
 
 ---
@@ -244,6 +249,39 @@ estimerait un paramètre que les données ne contiennent pas.
   **C'est celui-ci qui rend l'identification réaliste.**
 - Quantifier les lectures au dixième de degré, comme un capteur réel : cela seul
   pose un plancher d'identifiabilité.
+
+### Apports internes — occupants
+
+Demandé le 2026-08-07 : quand le capteur de présence d'une zone est vrai,
+supposer **1 à 4 personnes** présentes tant qu'il l'est, et injecter leur apport
+thermique.
+
+**À traiter dans cette section, pas avant.** Le modèle actuel n'a aucune
+capacité thermique : il n'existe aucun moyen honnête de convertir des watts en
+degrés par tick. Ajouter les occupants au modèle 1C actuel reviendrait à
+inventer un coefficient arbitraire. Une fois le nœud air et le nœud masse posés
+avec des capacités réelles (J/K), l'apport devient une puissance qui s'ajoute
+naturellement au bilan du nœud air.
+
+**Sur la valeur de 300 W par personne** : c'est environ deux à trois fois le
+métabolisme d'une personne assise en activité légère (ordre de grandeur usuel :
+~70 W sensible + ~45 W latent, soit ~115 W au total). 300 W correspond plutôt à
+**une personne AVEC son poste de travail** — écran, portable, quote-part
+d'éclairage et d'alimentation. Si c'est l'intention, la valeur est raisonnable
+et il faut nommer le paramètre en conséquence (`occupant_plus_equipment_w`)
+plutôt que de laisser croire à un métabolisme. Sinon, retenir ~120 W pour la
+personne et modéliser les équipements séparément — ils chauffent aussi quand la
+zone est vide.
+
+Seul l'apport **sensible** élève la température ; la part latente joue sur
+l'humidité, qui n'est pas simulée (dette P2). Le noter pour ne pas se surprendre
+plus tard.
+
+Nombre d'occupants : tirer un entier stable entre 1 et 4 par épisode de présence
+(pas un tirage à chaque tick, qui produirait un bruit blanc irréaliste), et le
+conserver tant que la présence dure. C'est aussi un apport que l'estimateur
+thermique devra encaisser sans le connaître — exactement le rôle du bruit de
+procédé décrit plus haut.
 
 **Vitesse** : avec une masse à 20 h, le multiplicateur du mode Démo/Test cesse
 d'être un confort et devient nécessaire pour observer quoi que ce soit.
