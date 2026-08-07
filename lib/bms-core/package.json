@@ -1,0 +1,7 @@
+{
+  "name": "bms-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cœur du AI BMS : tables de points, abstraction BMS, application de configuration, prompt IA.",
+  "main": "index.js"
+}

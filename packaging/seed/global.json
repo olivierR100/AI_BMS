@@ -1,0 +1,4612 @@
+{
+ "behaviorAgents": [
+  {
+   "id": "agent_lighting_f1",
+   "name": "Floor 1 Lighting",
+   "description": "Occupancy-based lighting with daylight harvesting for Lobby, Corridor, Meeting Room and Storage",
+   "category": "lighting",
+   "enabled": true,
+   "rule_group": "rg_lighting_f1"
+  },
+  {
+   "id": "agent_lighting_f2",
+   "name": "Floor 2 Lighting",
+   "description": "Occupancy-based lighting with daylight harvesting for F2 Corridor and Offices 1-3",
+   "category": "lighting",
+   "enabled": true,
+   "rule_group": "rg_lighting_f2"
+  },
+  {
+   "id": "agent_lighting_f3",
+   "name": "Floor 3 Lighting",
+   "description": "Occupancy-based lighting with daylight harvesting for F3 Corridor and Offices 1-3",
+   "category": "lighting",
+   "enabled": true,
+   "rule_group": "rg_lighting_f3"
+  },
+  {
+   "id": "agent_climate",
+   "name": "Climate Control",
+   "description": "Smart temperature setback: comfort when occupied or during business hours (M-F 7:00-19:00), eco otherwise",
+   "category": "climate",
+   "enabled": true,
+   "rule_group": "rg_climate"
+  },
+  {
+   "id": "agent_ventilation_f1",
+   "name": "Floor 1 Ventilation",
+   "description": "Demand-controlled CO2 ventilation (3-stage) for Lobby and Meeting Room",
+   "category": "climate",
+   "enabled": true,
+   "rule_group": "rg_ventilation_f1"
+  },
+  {
+   "id": "agent_ventilation_f2",
+   "name": "Floor 2 Ventilation",
+   "description": "Demand-controlled CO2 ventilation (3-stage) for F2 Offices 1-3",
+   "category": "climate",
+   "enabled": true,
+   "rule_group": "rg_ventilation_f2"
+  },
+  {
+   "id": "agent_ventilation_f3",
+   "name": "Floor 3 Ventilation",
+   "description": "Demand-controlled CO2 ventilation (3-stage) for F3 Offices 1-3",
+   "category": "climate",
+   "enabled": true,
+   "rule_group": "rg_ventilation_f3"
+  }
+ ],
+ "ruleGroups": [
+  {
+   "id": "rg_lighting_f1",
+   "name": "Floor 1 Lighting",
+   "rules": [
+    {
+     "name": "Lobby: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_lobby"
+       }
+      }
+     }
+    },
+    {
+     "name": "Lobby: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Lobby: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_lobby_occ_timer"
+       },
+       {
+        "fact": "f1_lobby_lux",
+        "operator": "lessThan",
+        "value": 300
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Lobby: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_lobby_occ_timer"
+       },
+       {
+        "fact": "st_lobby_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Lobby: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_lobby_occ_timer"
+       },
+       {
+        "fact": "st_lobby_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Corridor F1: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f1_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_corridor"
+       }
+      }
+     }
+    },
+    {
+     "name": "Corridor F1: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f1_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F1: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_corr_f1_occ_timer"
+       },
+       {
+        "fact": "f1_corr_lux",
+        "operator": "lessThan",
+        "value": 250
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_corr_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F1: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f1_occ_timer"
+       },
+       {
+        "fact": "st_corr_f1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_corr_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Corridor F1: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f1_occ_timer"
+       },
+       {
+        "fact": "st_corr_f1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f1_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Meeting: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_meeting"
+       }
+      }
+     }
+    },
+    {
+     "name": "Meeting: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Meeting: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_meet_occ_timer"
+       },
+       {
+        "fact": "f1_meet_lux",
+        "operator": "lessThan",
+        "value": 300
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Meeting: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_meet_occ_timer"
+       },
+       {
+        "fact": "st_meet_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Meeting: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_meet_occ_timer"
+       },
+       {
+        "fact": "st_meet_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Storage: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_stor_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_stor_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_storage"
+       }
+      }
+     }
+    },
+    {
+     "name": "Storage: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_stor_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_stor_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Storage: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_stor_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_stor_occ_timer"
+       },
+       {
+        "fact": "st_stor_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_stor_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Storage: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_stor_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_stor_occ_timer"
+       },
+       {
+        "fact": "st_stor_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_stor_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Storage: Motion → light ON",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_stor_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_stor_lamp",
+       "value": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_lighting_f2",
+   "name": "Floor 2 Lighting",
+   "rules": [
+    {
+     "name": "Corridor F2: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f2_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_corridor"
+       }
+      }
+     }
+    },
+    {
+     "name": "Corridor F2: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f2_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F2: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_corr_f2_occ_timer"
+       },
+       {
+        "fact": "f2_corr_lux",
+        "operator": "lessThan",
+        "value": 250
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_corr_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F2: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f2_occ_timer"
+       },
+       {
+        "fact": "st_corr_f2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_corr_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Corridor F2: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f2_occ_timer"
+       },
+       {
+        "fact": "st_corr_f2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f2_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.1: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F2.1: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.1: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f2_1_occ_timer"
+       },
+       {
+        "fact": "f2_off1_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.1: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_1_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.1: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_1_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.2: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F2.2: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.2: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f2_2_occ_timer"
+       },
+       {
+        "fact": "f2_off2_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.2: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_2_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.2: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_2_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.3: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F2.3: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.3: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f2_3_occ_timer"
+       },
+       {
+        "fact": "f2_off3_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F2.3: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_3_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F2.3: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f2_3_occ_timer"
+       },
+       {
+        "fact": "st_off_f2_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_occupied",
+       "value": false
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_lighting_f3",
+   "name": "Floor 3 Lighting",
+   "rules": [
+    {
+     "name": "Corridor F3: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f3_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_corridor"
+       }
+      }
+     }
+    },
+    {
+     "name": "Corridor F3: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_corr_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f3_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F3: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_corr_f3_occ_timer"
+       },
+       {
+        "fact": "f3_corr_lux",
+        "operator": "lessThan",
+        "value": 250
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_corr_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Corridor F3: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f3_occ_timer"
+       },
+       {
+        "fact": "st_corr_f3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_corr_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Corridor F3: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_corr_f3_occ_timer"
+       },
+       {
+        "fact": "st_corr_f3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_corr_f3_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.1: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F3.1: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.1: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f3_1_occ_timer"
+       },
+       {
+        "fact": "f3_off1_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.1: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_1_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.1: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_1_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.2: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F3.2: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.2: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f3_2_occ_timer"
+       },
+       {
+        "fact": "f3_off2_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.2: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_2_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.2: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_2_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_occupied",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.3: Motion → reset timer",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_occ_timer",
+       "value_expr": {
+        "fact": "glob_time_epoch_min",
+        "add_from_fact": "st_timeout_office"
+       }
+      }
+     }
+    },
+    {
+     "name": "Office F3.3: Motion → set occupied",
+     "priority": 70,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_motion",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_occupied",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.3: Active+Dark → light ON",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "lessThanFact",
+        "value": "st_off_f3_3_occ_timer"
+       },
+       {
+        "fact": "f3_off3_lux",
+        "operator": "lessThan",
+        "value": 350
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_lamp",
+       "value": true
+      }
+     }
+    },
+    {
+     "name": "Office F3.3: Expired → light OFF",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_3_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_lamp",
+       "value": false
+      }
+     }
+    },
+    {
+     "name": "Office F3.3: Expired → clear occupied",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_occ_timer",
+        "operator": "greaterThan",
+        "value": 0
+       },
+       {
+        "fact": "glob_time_epoch_min",
+        "operator": "greaterThanFact",
+        "value": "st_off_f3_3_occ_timer"
+       },
+       {
+        "fact": "st_off_f3_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_occupied",
+       "value": false
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_climate",
+   "name": "Climate Control",
+   "rules": [
+    {
+     "name": "Lobby Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "Meeting Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F1 Corridor Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_corr_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F2 Corridor Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_corr_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F3 Corridor Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_corr_f3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_corr_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F2 Off1 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F2 Off2 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F2 Off3 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F3 Off1 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F3 Off2 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "F3 Off3 Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "Storage Occupied → Comfort",
+     "priority": 60,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_stor_occupied",
+        "operator": "equal",
+        "value": true
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_stor_temp_setpoint",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "Business Hours → All Comfort",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "glob_time_day",
+        "operator": "in",
+        "value": [
+         1,
+         2,
+         3,
+         4,
+         5
+        ]
+       },
+       {
+        "fact": "glob_time_minutes",
+        "operator": "greaterThanInclusive",
+        "value": 420
+       },
+       {
+        "fact": "glob_time_minutes",
+        "operator": "lessThan",
+        "value": 1140
+       }
+      ]
+     },
+     "event": {
+      "type": "control_group",
+      "params": {
+       "tag": "hvac_temp",
+       "value_from_fact": "glob_comfort_sp"
+      }
+     }
+    },
+    {
+     "name": "Outside Hours → All Eco",
+     "priority": 20,
+     "conditions": {
+      "all": [
+       {
+        "any": [
+         {
+          "fact": "glob_time_day",
+          "operator": "notIn",
+          "value": [
+           1,
+           2,
+           3,
+           4,
+           5
+          ]
+         },
+         {
+          "fact": "glob_time_minutes",
+          "operator": "lessThan",
+          "value": 420
+         },
+         {
+          "fact": "glob_time_minutes",
+          "operator": "greaterThanInclusive",
+          "value": 1140
+         }
+        ]
+       }
+      ]
+     },
+     "event": {
+      "type": "control_group",
+      "params": {
+       "tag": "hvac_temp",
+       "value_from_fact": "glob_eco_sp"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_ventilation_f1",
+   "name": "F1 Ventilation",
+   "rules": [
+    {
+     "name": "Lobby: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "Lobby: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "Lobby: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "Lobby: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_lobby_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_lobby_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "Lobby: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "Lobby: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "Lobby: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_lobby_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_lobby_vent",
+       "value": 80
+      }
+     }
+    },
+    {
+     "name": "Meeting: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "Meeting: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "Meeting: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "Meeting: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f1_meet_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_meet_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "Meeting: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "Meeting: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "Meeting: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_meet_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f1_meet_vent",
+       "value": 80
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_ventilation_f2",
+   "name": "F2 Ventilation",
+   "rules": [
+    {
+     "name": "F2 Off1: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off1_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_1_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F2 Off1: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_1_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off1_vent",
+       "value": 80
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off2_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_2_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F2 Off2: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_2_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off2_vent",
+       "value": 80
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f2_off3_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f2_3_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F2 Off3: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f2_3_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f2_off3_vent",
+       "value": 80
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "rg_ventilation_f3",
+   "name": "F3 Ventilation",
+   "rules": [
+    {
+     "name": "F3 Off1: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off1_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_1_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F3 Off1: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_1_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off1_vent",
+       "value": 80
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off2_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_2_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F3 Off2: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_2_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off2_vent",
+       "value": 80
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: CO2>800 +St0 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_co2",
+        "operator": "greaterThan",
+        "value": 800
+       },
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: CO2<650 +St1 → St0",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_co2",
+        "operator": "lessThan",
+        "value": 650
+       },
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_co2_stage",
+       "value": 0
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: CO2>1200 +St≤1 → St2",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_co2",
+        "operator": "greaterThan",
+        "value": 1200
+       },
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "lessThanInclusive",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_co2_stage",
+       "value": 2
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: CO2<1000 +St2 → St1",
+     "priority": 50,
+     "conditions": {
+      "all": [
+       {
+        "fact": "f3_off3_co2",
+        "operator": "lessThan",
+        "value": 1000
+       },
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "set_state",
+      "params": {
+       "id": "st_off_f3_3_co2_stage",
+       "value": 1
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: Stage 0 → Vent 10%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 0
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_vent",
+       "value": 10
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: Stage 1 → Vent 40%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 1
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_vent",
+       "value": 40
+      }
+     }
+    },
+    {
+     "name": "F3 Off3: Stage 2 → Vent 80%",
+     "priority": 40,
+     "conditions": {
+      "all": [
+       {
+        "fact": "st_off_f3_3_co2_stage",
+        "operator": "equal",
+        "value": 2
+       }
+      ]
+     },
+     "event": {
+      "type": "control_device",
+      "params": {
+       "id": "f3_off3_vent",
+       "value": 80
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "stateRegistry": [
+  {
+   "id": "st_timeout_corridor",
+   "name": "Corridor Timeout",
+   "type": "number",
+   "defaultValue": 10,
+   "description": "Minutes before corridor lights turn off after last motion"
+  },
+  {
+   "id": "st_timeout_office",
+   "name": "Office Timeout",
+   "type": "number",
+   "defaultValue": 15,
+   "description": "Minutes before office lights turn off after last motion"
+  },
+  {
+   "id": "st_timeout_lobby",
+   "name": "Lobby Timeout",
+   "type": "number",
+   "defaultValue": 10,
+   "description": "Minutes before lobby lights turn off after last motion"
+  },
+  {
+   "id": "st_timeout_meeting",
+   "name": "Meeting Room Timeout",
+   "type": "number",
+   "defaultValue": 15,
+   "description": "Minutes before meeting room lights turn off after last motion"
+  },
+  {
+   "id": "st_timeout_storage",
+   "name": "Storage Timeout",
+   "type": "number",
+   "defaultValue": 3,
+   "description": "Minutes before storage lights turn off after last motion"
+  },
+  {
+   "id": "st_lobby_occ_timer",
+   "name": "Lobby Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when lobby occupancy expires"
+  },
+  {
+   "id": "st_lobby_occupied",
+   "name": "Lobby Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "Lobby occupancy state"
+  },
+  {
+   "id": "st_lobby_co2_stage",
+   "name": "Lobby CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Lobby ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_meet_occ_timer",
+   "name": "Meeting Room Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when meeting room occupancy expires"
+  },
+  {
+   "id": "st_meet_occupied",
+   "name": "Meeting Room Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "Meeting room occupancy state"
+  },
+  {
+   "id": "st_meet_co2_stage",
+   "name": "Meeting Room CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Meeting room ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_stor_occ_timer",
+   "name": "Storage Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when storage occupancy expires"
+  },
+  {
+   "id": "st_stor_occupied",
+   "name": "Storage Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "Storage occupancy state"
+  },
+  {
+   "id": "st_corr_f1_occ_timer",
+   "name": "F1 Corridor Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F1 corridor occupancy expires"
+  },
+  {
+   "id": "st_corr_f1_occupied",
+   "name": "F1 Corridor Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F1 corridor occupancy state"
+  },
+  {
+   "id": "st_corr_f2_occ_timer",
+   "name": "F2 Corridor Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F2 corridor occupancy expires"
+  },
+  {
+   "id": "st_corr_f2_occupied",
+   "name": "F2 Corridor Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F2 corridor occupancy state"
+  },
+  {
+   "id": "st_corr_f3_occ_timer",
+   "name": "F3 Corridor Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F3 corridor occupancy expires"
+  },
+  {
+   "id": "st_corr_f3_occupied",
+   "name": "F3 Corridor Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F3 corridor occupancy state"
+  },
+  {
+   "id": "st_off_f2_1_occ_timer",
+   "name": "F2 Office 1 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F2 Office 1 occupancy expires"
+  },
+  {
+   "id": "st_off_f2_1_occupied",
+   "name": "F2 Office 1 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F2 Office 1 occupancy state"
+  },
+  {
+   "id": "st_off_f2_1_co2_stage",
+   "name": "F2 Office 1 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F2 Office 1 ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_off_f2_2_occ_timer",
+   "name": "F2 Office 2 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F2 Office 2 occupancy expires"
+  },
+  {
+   "id": "st_off_f2_2_occupied",
+   "name": "F2 Office 2 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F2 Office 2 occupancy state"
+  },
+  {
+   "id": "st_off_f2_2_co2_stage",
+   "name": "F2 Office 2 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F2 Office 2 ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_off_f2_3_occ_timer",
+   "name": "F2 Office 3 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F2 Office 3 occupancy expires"
+  },
+  {
+   "id": "st_off_f2_3_occupied",
+   "name": "F2 Office 3 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F2 Office 3 occupancy state"
+  },
+  {
+   "id": "st_off_f2_3_co2_stage",
+   "name": "F2 Office 3 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F2 Office 3 ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_off_f3_1_occ_timer",
+   "name": "F3 Office 1 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F3 Office 1 occupancy expires"
+  },
+  {
+   "id": "st_off_f3_1_occupied",
+   "name": "F3 Office 1 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F3 Office 1 occupancy state"
+  },
+  {
+   "id": "st_off_f3_1_co2_stage",
+   "name": "F3 Office 1 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F3 Office 1 ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_off_f3_2_occ_timer",
+   "name": "F3 Office 2 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F3 Office 2 occupancy expires"
+  },
+  {
+   "id": "st_off_f3_2_occupied",
+   "name": "F3 Office 2 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F3 Office 2 occupancy state"
+  },
+  {
+   "id": "st_off_f3_2_co2_stage",
+   "name": "F3 Office 2 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F3 Office 2 ventilation stage (0=bg, 1=moderate, 2=high)"
+  },
+  {
+   "id": "st_off_f3_3_occ_timer",
+   "name": "F3 Office 3 Occupancy Timer",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "Epoch minute when F3 Office 3 occupancy expires"
+  },
+  {
+   "id": "st_off_f3_3_occupied",
+   "name": "F3 Office 3 Occupied",
+   "type": "boolean",
+   "defaultValue": false,
+   "description": "F3 Office 3 occupancy state"
+  },
+  {
+   "id": "st_off_f3_3_co2_stage",
+   "name": "F3 Office 3 CO2 Stage",
+   "type": "number",
+   "defaultValue": 0,
+   "description": "F3 Office 3 ventilation stage (0=bg, 1=moderate, 2=high)"
+  }
+ ],
+ "dashboardConfig": {
+  "widgets": [
+   {
+    "type": "section",
+    "label": "🌍 Building Overview",
+    "icon": "mdi-home-city",
+    "grid": true,
+    "widgets": [
+     {
+      "type": "text",
+      "label": "Outside Temperature",
+      "bind": "glob_outside_temp",
+      "unit": "°C",
+      "decimals": 1,
+      "icon": "mdi-thermometer"
+     },
+     {
+      "type": "gauge",
+      "label": "Outside Light",
+      "bind": "glob_outside_lux",
+      "min": 0,
+      "max": 50000,
+      "unit": "lux",
+      "thresholds": [
+       {
+        "value": 10000,
+        "color": "yellow"
+       },
+       {
+        "value": 30000,
+        "color": "orange"
+       }
+      ]
+     },
+     {
+      "type": "status",
+      "label": "Daylight",
+      "bind": "sun_is_daylight",
+      "trueColor": "amber",
+      "falseColor": "indigo",
+      "trueText": "DAY",
+      "falseText": "NIGHT",
+      "trueIcon": "mdi-white-balance-sunny",
+      "falseIcon": "mdi-weather-night"
+     },
+     {
+      "type": "slider",
+      "label": "Comfort Setpoint",
+      "bind": "glob_comfort_sp",
+      "min": 18,
+      "max": 26,
+      "step": 0.5,
+      "unit": "°C",
+      "icon": "mdi-thermostat"
+     },
+     {
+      "type": "slider",
+      "label": "Eco Setpoint",
+      "bind": "glob_eco_sp",
+      "min": 12,
+      "max": 20,
+      "step": 0.5,
+      "unit": "°C",
+      "icon": "mdi-thermostat-auto"
+     }
+    ]
+   },
+   {
+    "type": "group",
+    "id": "grp_f1",
+    "label": "🏢 Floor 1",
+    "icon": "mdi-floor-1",
+    "color": "blue",
+    "widgets": [
+     {
+      "type": "section",
+      "label": "🚪 Lobby",
+      "icon": "mdi-door",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_lobby_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f1_lobby_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f1_lobby_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f1_lobby_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f1_lobby_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f1_lobby_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f1_lobby_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f1_lobby_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🚶 F1 Corridor",
+      "icon": "mdi-arrow-right-bold",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_corr_f1_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f1_corr_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f1_corr_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f1_corr_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f1_corr_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "💼 Meeting Room",
+      "icon": "mdi-presentation",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_meet_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "status",
+        "label": "Booking",
+        "bind": "f1_meet_booking",
+        "trueColor": "info",
+        "falseColor": "grey",
+        "trueText": "BOOKED",
+        "falseText": "FREE",
+        "trueIcon": "mdi-calendar-check",
+        "falseIcon": "mdi-calendar-blank"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f1_meet_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f1_meet_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f1_meet_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f1_meet_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f1_meet_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f1_meet_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f1_meet_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "📦 Storage",
+      "icon": "mdi-warehouse",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_stor_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f1_stor_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f1_stor_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f1_stor_temp_setpoint",
+        "min": 10,
+        "max": 25,
+        "step": 0.5,
+        "unit": "°C"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "group",
+    "id": "grp_f2",
+    "label": "🏢 Floor 2",
+    "icon": "mdi-floor-2",
+    "color": "green",
+    "widgets": [
+     {
+      "type": "section",
+      "label": "🚶 F2 Corridor",
+      "icon": "mdi-arrow-right-bold",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_corr_f2_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f2_corr_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f2_corr_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f2_corr_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f2_corr_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 2.1",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f2_1_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f2_off1_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f2_off1_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f2_off1_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f2_off1_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f2_off1_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f2_off1_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f2_off1_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 2.2",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f2_2_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f2_off2_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f2_off2_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f2_off2_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f2_off2_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f2_off2_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f2_off2_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f2_off2_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 2.3",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f2_3_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f2_off3_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f2_off3_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f2_off3_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f2_off3_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f2_off3_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f2_off3_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f2_off3_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "group",
+    "id": "grp_f3",
+    "label": "🏢 Floor 3",
+    "icon": "mdi-floor-3",
+    "color": "purple",
+    "widgets": [
+     {
+      "type": "section",
+      "label": "🚶 F3 Corridor",
+      "icon": "mdi-arrow-right-bold",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_corr_f3_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f3_corr_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f3_corr_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f3_corr_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f3_corr_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 3.1",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f3_1_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f3_off1_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f3_off1_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f3_off1_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f3_off1_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f3_off1_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f3_off1_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f3_off1_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 3.2",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f3_2_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f3_off2_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f3_off2_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f3_off2_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f3_off2_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f3_off2_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f3_off2_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f3_off2_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     },
+     {
+      "type": "section",
+      "label": "🖥️ Office 3.3",
+      "icon": "mdi-desk",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "status",
+        "label": "Occupancy",
+        "bind": "st_off_f3_3_occupied",
+        "trueColor": "success",
+        "falseColor": "grey",
+        "trueText": "OCCUPIED",
+        "falseText": "VACANT"
+       },
+       {
+        "type": "text",
+        "label": "Temperature",
+        "bind": "f3_off3_temp",
+        "unit": "°C",
+        "decimals": 1,
+        "icon": "mdi-thermometer"
+       },
+       {
+        "type": "text",
+        "label": "Humidity",
+        "bind": "f3_off3_hum",
+        "unit": "%",
+        "decimals": 0,
+        "icon": "mdi-water-percent"
+       },
+       {
+        "type": "gauge",
+        "label": "CO2 Level",
+        "bind": "f3_off3_co2",
+        "min": 400,
+        "max": 2000,
+        "unit": "ppm",
+        "thresholds": [
+         {
+          "value": 800,
+          "color": "green"
+         },
+         {
+          "value": 1200,
+          "color": "orange"
+         },
+         {
+          "value": 2000,
+          "color": "red"
+         }
+        ]
+       },
+       {
+        "type": "gauge",
+        "label": "Light Level",
+        "bind": "f3_off3_lux",
+        "min": 0,
+        "max": 2000,
+        "unit": "lux"
+       },
+       {
+        "type": "switch",
+        "label": "Lamp",
+        "bind": "f3_off3_lamp",
+        "color": "amber"
+       },
+       {
+        "type": "slider",
+        "label": "Temp Setpoint",
+        "bind": "f3_off3_temp_setpoint",
+        "min": 15,
+        "max": 28,
+        "step": 0.5,
+        "unit": "°C"
+       },
+       {
+        "type": "slider",
+        "label": "Ventilation",
+        "bind": "f3_off3_vent",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "group",
+    "id": "grp_config",
+    "label": "⚙️ Configuration",
+    "icon": "mdi-cog",
+    "color": "grey",
+    "widgets": [
+     {
+      "type": "section",
+      "label": "⏱️ Lighting Timeouts (minutes)",
+      "icon": "mdi-timer",
+      "grid": true,
+      "widgets": [
+       {
+        "type": "slider",
+        "label": "Corridor Timeout",
+        "bind": "st_timeout_corridor",
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "unit": "min"
+       },
+       {
+        "type": "slider",
+        "label": "Office Timeout",
+        "bind": "st_timeout_office",
+        "min": 1,
+        "max": 60,
+        "step": 1,
+        "unit": "min"
+       },
+       {
+        "type": "slider",
+        "label": "Lobby Timeout",
+        "bind": "st_timeout_lobby",
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "unit": "min"
+       },
+       {
+        "type": "slider",
+        "label": "Meeting Timeout",
+        "bind": "st_timeout_meeting",
+        "min": 1,
+        "max": 60,
+        "step": 1,
+        "unit": "min"
+       },
+       {
+        "type": "slider",
+        "label": "Storage Timeout",
+        "bind": "st_timeout_storage",
+        "min": 1,
+        "max": 15,
+        "step": 1,
+        "unit": "min"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "aiChatSettings": {
+  "provider": "deepseek",
+  "keys": {
+   "anthropic": "",
+   "openai": "",
+   "deepseek": "",
+   "mistral": ""
+  },
+  "models": {
+   "anthropic": "claude-sonnet-4-6",
+   "openai": "gpt-5.1",
+   "deepseek": "deepseek-v4-pro",
+   "mistral": "mistral-medium-latest"
+  },
+  "reasoning": "high"
+ }
+}

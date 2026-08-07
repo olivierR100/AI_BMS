@@ -18,6 +18,8 @@ settings_js.save
 
 # --- Dependencies ---
 node_modules/
+# lien symbolique vers ~/.node-red/node_modules (le motif avec / ne le couvre pas)
+node_modules
 
 # --- OS noise ---
 .DS_Store
@@ -25,3 +27,6 @@ Thumbs.db
 
 # WSL metadata junk
 *Zone.Identifier
+
+# --- Artefacts de distribution (regénérables) ---
+dist/

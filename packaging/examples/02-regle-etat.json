@@ -1,0 +1,77 @@
+{
+  "merge": true,
+
+  "_commentaire": [
+    "Exemple 2 — ajouter un agent, un état interne et deux règles.",
+    "",
+    "  \"merge\": true  →  ces éléments sont AJOUTÉS à la configuration existante",
+    "                     (fusion par id). Sans lui, chaque section fournie",
+    "                     REMPLACE entièrement la section correspondante et la",
+    "                     configuration de démonstration serait effacée.",
+    "",
+    "Le scénario : une salle réservée mais vide gaspille du chauffage et de la",
+    "ventilation. On lève un état interne quand le cas se présente, sans piloter",
+    "d'actionneur — c'est ce que l'exemple 3 fera, en simulation.",
+    "",
+    "Les clés commençant par _ sont ignorées par le moteur."
+  ],
+
+  "behavior_agents": [
+    {
+      "id": "agent_demo_reservation",
+      "name": "Démo — réservations non honorées",
+      "description": "Signale une salle de réunion réservée dans laquelle personne n'est présent.",
+      "category": "energy",
+      "enabled": true,
+      "rule_group": "rg_demo_reservation"
+    }
+  ],
+
+  "defined_states": [
+    {
+      "id": "st_demo_salle_fantome",
+      "name": "Salle réservée mais vide",
+      "type": "boolean",
+      "defaultValue": false,
+      "ttl": 3600,
+      "description": "Vrai lorsque la salle de réunion est réservée et qu'aucune présence n'est détectée. Retombe seule au bout d'une heure (ttl)."
+    }
+  ],
+
+  "rule_groups": [
+    {
+      "id": "rg_demo_reservation",
+      "name": "Démo — réservations non honorées",
+      "rules": [
+        {
+          "name": "Réservée sans présence → signaler",
+          "priority": 10,
+          "conditions": {
+            "all": [
+              { "fact": "f1_meet_booking", "operator": "equal", "value": true },
+              { "fact": "f1_meet_motion",  "operator": "equal", "value": false }
+            ]
+          },
+          "event": {
+            "type": "set_state",
+            "params": { "id": "st_demo_salle_fantome", "value": true }
+          }
+        },
+        {
+          "name": "Présence ou libérée → retour à la normale",
+          "priority": 10,
+          "conditions": {
+            "any": [
+              { "fact": "f1_meet_motion",  "operator": "equal", "value": true },
+              { "fact": "f1_meet_booking", "operator": "equal", "value": false }
+            ]
+          },
+          "event": {
+            "type": "set_state",
+            "params": { "id": "st_demo_salle_fantome", "value": false }
+          }
+        }
+      ]
+    }
+  ]
+}

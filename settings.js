@@ -572,6 +572,12 @@ module.exports = {
         nodeCacheModule: require('node-cache'),
         jsonRulesEngine: require('json-rules-engine'),
         suncalcModule: require('suncalc'),
+        // Cœur du BMS : tables de points, abstraction BMS, application de
+        // configuration, constructeur de prompt. Vit dans lib/bms-core/ du
+        // userDir plutôt que dans le nœud « Initialize System », qui n'est plus
+        // qu'un amorçage. Chargé au DÉMARRAGE : modifier ces fichiers exige un
+        // redémarrage de Node-RED, un redéploiement ne suffit pas.
+        bmsCore: require('./lib/bms-core'),
         // Shared with the bmsRing logger above — same array reference, read by /bms/syslog
         sysLogBuffer: (global._bmsSysLog = global._bmsSysLog || []),
         // Node 18+ global fetch, exposed to function nodes (the sandbox hides it). Used by the
